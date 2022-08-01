@@ -6,13 +6,15 @@ import {
   refreshToken,
   updatePassword,
   recoverPassword,
-  signUp
+  signUp,
+  activateAccount
 } from './auth.controller'
 
 const router = Router()
 
 router.post('/authenticate', authenticate)
 router.post('/signUp', signUp)
+router.post('/activate/:token', activateAccount)
 router.post('/recoverPassword', recoverPassword)
 router.post('/refreshToken', validateAccessToken, refreshToken)
 router.post('/updatePassword', validateAccessToken, updatePassword)
