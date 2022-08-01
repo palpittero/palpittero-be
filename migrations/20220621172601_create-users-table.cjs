@@ -7,6 +7,7 @@ module.exports = {
       table.string('password', 32).notNullable()
       table.string('phone', 32)
       table.string('avatar', 255)
+      table.text('token')
       table.enu('role', ['admin', 'player']).defaultTo('player')
       table
         .enu('status', ['active', 'inactive', 'banned', 'deleted'])

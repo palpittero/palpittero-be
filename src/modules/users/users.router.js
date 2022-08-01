@@ -3,9 +3,9 @@ import {
   createUser,
   getUsers,
   getUser,
+  getUserLeagues,
   updateUser,
-  deleteUser,
-  getUserLeagues
+  deleteUser
 } from './users.controller'
 
 const router = Router()

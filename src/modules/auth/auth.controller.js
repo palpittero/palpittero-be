@@ -3,6 +3,9 @@ import bcrypt from 'bcrypt'
 import usersModel from '../../models/users.model'
 import omit from 'lodash/fp/omit'
 import { generateTokens } from '../../utils/auth'
+import { STATUS } from '../../shared/constants'
+import { sendAccountCreationEmail } from '../email/email.service'
+import { validateToken } from '../../shared/token.service'
 
 const authenticate = async (req, res) => {
   const { email, password } = req.body
@@ -68,7 +71,7 @@ const updatePassword = async (req, res) => {
     })
   })
 
-  res.json()
+  return res.sendStatus(200)
 }
 
 const getLoggedUser = async (req, res) => {
@@ -83,26 +86,68 @@ const signUp = async (req, res) => {
   const { name, email, password, passwordConfirmation } = req.body
 
   if (password !== passwordConfirmation) {
-    return res.status(400).json()
+    return res.sendStatus(400)
   }
 
   const user = await usersModel.fetchByEmail(email)
 
   if (user) {
-    return res.status(429).json()
+    return res.sendStatus(409)
   }
 
-  bcrypt.genSalt(10, (err, salt) => {
-    bcrypt.hash(password, salt, async (err, hash) => {
-      await usersModel.insert({
-        name,
-        email,
-        password: hash
-      })
+  const salt = bcrypt.genSaltSync(10)
+  const passwordHash = bcrypt.hashSync(password, salt)
 
-      res.status(201).json()
-    })
+  const token = jwt.sign(
+    { email },
+    process.env.USER_ACCOUNT_ACTIVATION_TOKEN_SECRET,
+    {
+      expiresIn: process.env.USER_ACCOUNT_ACTIVATION_TOKEN_EXPIRES_IN
+    }
+  )
+
+  await usersModel.insert({
+    name,
+    email,
+    password: passwordHash,
+    token,
+    status: STATUS.INACTIVE
   })
+
+  await sendAccountCreationEmail({ name, email, token })
+
+  return res.sendStatus(201)
+}
+
+const activateAccount = async (req, res) => {
+  const { token } = req.params
+  const secret = process.env.USER_ACCOUNT_ACTIVATION_TOKEN_SECRET
+
+  const tokenValidation = validateToken({ token, secret })
+
+  if (!tokenValidation) {
+    return res.sendStatus(400)
+  }
+
+  const { email } = tokenValidation
+
+  const user = await usersModel.fetchByEmail(email)
+
+  if (!user) {
+    return res.sendStatus(404)
+  }
+
+  if (user.status === STATUS.ACTIVE) {
+    return res.sendStatus(200)
+  }
+
+  await usersModel.update({
+    id: user.id,
+    token: null,
+    status: STATUS.ACTIVE
+  })
+
+  return res.sendStatus(200)
 }
 
 const recoverPassword = async (req, res) => {
@@ -111,7 +156,7 @@ const recoverPassword = async (req, res) => {
   const user = await usersModel.fetchByEmail(email)
 
   if (!user) {
-    return res.status(404).json()
+    return res.sendStatus(404)
   }
 
   // Todo
@@ -124,5 +169,6 @@ export {
   updatePassword,
   getLoggedUser,
   signUp,
-  recoverPassword
+  recoverPassword,
+  activateAccount
 }

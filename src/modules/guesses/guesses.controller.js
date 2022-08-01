@@ -55,9 +55,8 @@ const registerGuesses = async (req, res) => {
   const userId = res.locals.jwt.user.id
   const parsedGuesses = parseRegisterGuesses({ guesses, userId })
   await guessesModel.replace(parsedGuesses)
-  // console.log({ parsedGuesses })
 
-  res.status(201).json()
+  res.sendStatus(201)
 }
 
 const updateGuess = async (req, res) => {
@@ -107,7 +106,7 @@ const processGuesses = async (req, res) => {
   const guessesReport = generateGuessesReport(guesses)
 
   await guessesReportModel.replace(guessesReport)
-  res.json()
+  res.sendStatus(200)
 }
 
 export {

@@ -1,7 +1,7 @@
-import bcrypt from 'bcrypt'
 import omit from 'lodash/fp/omit'
 import usersModel from '../../models/users.model'
 import usersLeaguesModel from '../../models/usersLeagues.model'
+import { signUp } from '../auth/auth.controller'
 
 const getUsers = async (req, res) => {
   const users = await usersModel.fetchAll()
@@ -24,28 +24,7 @@ const getUser = async (req, res) => {
   })
 }
 
-const createUser = async (req, res) => {
-  const { name, email, password, phone } = req.body
-
-  const user = await usersModel.fetchByEmail(email)
-
-  if (!user) {
-    return res.status(404).json()
-  }
-
-  bcrypt.genSalt(10, (err, salt) => {
-    bcrypt.hash(password, salt, async (err, hash) => {
-      const [id] = await usersModel.insert({
-        name,
-        email,
-        password: hash,
-        phone
-      })
-
-      res.status(201).json({ data: id })
-    })
-  })
-}
+const createUser = signUp
 
 const updateUser = async (req, res) => {
   const id = parseInt(req.params.id)
@@ -60,7 +39,7 @@ const updateUser = async (req, res) => {
   const userByEmail = await usersModel.fetchByEmail(email)
 
   if (userByEmail && userByEmail.id !== id) {
-    return res.status(409).json()
+    return res.sendStatus(409)
   }
 
   await usersModel.update({

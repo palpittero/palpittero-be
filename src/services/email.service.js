@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer'
 
-const send = ({ from, subject, html }) => {
+const sendEmail = ({ from = process.env.EMAIL_FROM, subject, html }) => {
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_SERVICE_HOST,
     port: Number(process.env.SMTP_SERVICE_PORT),
@@ -19,14 +19,19 @@ const send = ({ from, subject, html }) => {
     html
   }
 
-  return Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
+    console.log('Trying to send account activation e-mail')
+
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
+        console.log('Error sending e-mail', error.toString())
         reject(error)
       }
+
+      console.log('E-mail sucessfully sent', info)
       resolve(info)
     })
   })
 }
 
-export { send }
+export { sendEmail }

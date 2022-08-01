@@ -8,7 +8,7 @@ const inviteUsers = async (req, res) => {
   const league = leaguesModel.fetchById(leagueId)
 
   if (!league) {
-    return res.status(404).json()
+    return res.sendStatus(404)
   }
 
   const status = league.private
@@ -23,7 +23,7 @@ const inviteUsers = async (req, res) => {
 
   await usersLeaguesModel.replace(usersLeagues)
 
-  res.status(201).json()
+  res.sendStatus(201)
 }
 
 const approveUser = async (req, res) => {
@@ -35,7 +35,7 @@ const approveUser = async (req, res) => {
     userId
   })
 
-  res.status(200).json()
+  res.sendStatus(200)
 }
 
 const deleteUser = async (req, res) => {
@@ -46,7 +46,7 @@ const deleteUser = async (req, res) => {
     userId
   })
 
-  res.status(200).json()
+  res.sendStatus(200)
 }
 
 export { inviteUsers, approveUser, deleteUser }
