@@ -9,12 +9,17 @@ const appendUsersLeagues = ({ leagueId, users, ownerId }) => {
   }
 
   if (users?.length) {
-    const usersLeagues = users.map((user) => ({
-      userId: user.id,
-      leagueId,
-      status: USERS_LEAGUES_STATUSES.APPROVED,
-      owner: false
-    }))
+    const usersLeagues = users
+      .filter(({ id }) => {
+        console.log(id, ownerId)
+        return id !== ownerId
+      })
+      .map((user) => ({
+        userId: user.id,
+        leagueId,
+        status: USERS_LEAGUES_STATUSES.APPROVED,
+        owner: false
+      }))
 
     return [...usersLeagues, owner]
   }

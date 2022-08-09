@@ -89,11 +89,12 @@ const updateLeague = async (req, res) => {
     status
   })
 
-  const ownerId = res.locals.jwt.user.id
+  const ownerId = users.find(({ owner }) => owner)?.id || res.locals.jwt.user.id
   const usersLeagues = appendUsersLeagues({ leagueId, users, ownerId })
 
-  console.log(usersLeagues)
+  console.log({ usersLeagues })
 
+  await usersLeaguesModel.deleteByLeague(leagueId)
   await usersLeaguesModel.replace(usersLeagues)
 
   const leaguesChampionships = appendLeaguesChampionships({

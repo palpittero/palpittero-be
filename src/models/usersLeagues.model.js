@@ -24,8 +24,13 @@ const fetchByLeague = async ({ id, status }) => {
     .where(omitBy(isNil, { leagueId: id, [`${TABLE_NAME}.status`]: status }))
 }
 
+const deleteByLeague = async (leagueId) => {
+  return await knex(TABLE_NAME).del().where({ leagueId })
+}
+
 export default {
   ...usersLeaguesModel,
   fetchByUser,
-  fetchByLeague
+  fetchByLeague,
+  deleteByLeague
 }

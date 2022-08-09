@@ -28,7 +28,7 @@ const createUser = signUp
 
 const updateUser = async (req, res) => {
   const id = parseInt(req.params.id)
-  const { name, email, phone, status } = req.body
+  const { name, email, phone, status, role } = req.body
 
   const user = await usersModel.fetchById(id)
 
@@ -47,6 +47,7 @@ const updateUser = async (req, res) => {
     name,
     email,
     phone,
+    role,
     status
   })
 

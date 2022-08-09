@@ -6,6 +6,7 @@ import { generateTokens } from '../../utils/auth'
 import { STATUS } from '../../shared/constants'
 import { sendAccountCreationEmail } from '../email/email.service'
 import { validateToken } from '../../shared/token.service'
+import { USER_ROLES } from '../users/users.constants'
 
 const authenticate = async (req, res) => {
   const { email, password } = req.body
@@ -83,7 +84,14 @@ const getLoggedUser = async (req, res) => {
 }
 
 const signUp = async (req, res) => {
-  const { name, email, password, passwordConfirmation } = req.body
+  const {
+    name,
+    email,
+    password,
+    passwordConfirmation,
+    phone,
+    role = USER_ROLES.PLAYER
+  } = req.body
 
   if (password !== passwordConfirmation) {
     return res.sendStatus(400)
@@ -111,6 +119,8 @@ const signUp = async (req, res) => {
     email,
     password: passwordHash,
     token,
+    role,
+    phone,
     status: STATUS.INACTIVE
   })
 
