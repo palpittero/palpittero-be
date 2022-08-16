@@ -1,27 +1,24 @@
 import lodash from 'lodash/fp'
-const { pipe, filter, reduce } = lodash
+import { TABLE_FIELDS } from '../../models/guesses.model'
+const { pipe, filter, reduce, pick } = lodash
 
 import { guessPointsStrategy } from './guessesReport.strategy'
 
-export const generateGuessesReport = (guesses) => {
+export const calculateGuessesPoints = (guesses) =>
   pipe(
     filter(({ match }) => match.status === 'finished'),
     reduce((result, guess) => {
-      const { userId, leagueId, matchId } = guess
       const points = guessPointsStrategy[guess.league.pointsStrategy](guess)
 
       return [
         ...result,
         {
-          userId,
-          leagueId,
-          matchId,
+          ...pick(TABLE_FIELDS, guess),
           points
         }
       ]
     }, [])
   )(guesses)
-}
 
 export const parseRegisterGuesses = ({ guesses, userId }) =>
   guesses.map(

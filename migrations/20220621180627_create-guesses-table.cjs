@@ -15,6 +15,7 @@ module.exports = {
       table.integer('awayTeamExtraTimeGoals')
       table.integer('homeTeamPenaltiesTimeGoals')
       table.integer('awayTeamPenaltiesTimeGoals')
+      table.integer('points')
       table.unique(['userId', 'matchId', 'leagueId'])
       table.timestamps(true, true, true)
     })

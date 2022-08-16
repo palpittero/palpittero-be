@@ -7,6 +7,21 @@ import isNil from 'lodash/fp/isNil'
 
 const TABLE_NAME = 'guesses'
 
+export const TABLE_FIELDS = [
+  'userId',
+  'leagueId',
+  'matchId',
+  'homeTeamRegularTimeGoals',
+  'awayTeamRegularTimeGoals',
+  'homeTeamExtraTimeGoals',
+  'awayTeamExtraTimeGoals',
+  'homeTeamPenaltiesTimeGoals',
+  'awayTeamPenaltiesTimeGoals',
+  'points',
+  'createdAt',
+  'updatedAt'
+]
+
 const guessesModel = baseModel(TABLE_NAME)
 
 const fetchById = async (id) => {

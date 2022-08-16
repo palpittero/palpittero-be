@@ -1,6 +1,5 @@
 import guessesModel from '../../models/guesses.model'
-import guessesReportModel from '../../models/guessesReport.model'
-import { generateGuessesReport, parseRegisterGuesses } from './guesses.helpers'
+import { calculateGuessesPoints, parseRegisterGuesses } from './guesses.helpers'
 
 const getGuesses = async (req, res) => {
   const { userId, leagueId, matchId, roundId } = req.query
@@ -103,9 +102,9 @@ const deleteGuess = async (req, res) => {
 const processGuesses = async (req, res) => {
   const guesses = await guessesModel.fetchAll()
 
-  const guessesReport = generateGuessesReport(guesses)
+  const guessesUpdate = calculateGuessesPoints(guesses)
 
-  await guessesReportModel.replace(guessesReport)
+  await guessesModel.replace(guessesUpdate)
   res.sendStatus(200)
 }
 
