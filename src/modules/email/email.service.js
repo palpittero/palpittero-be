@@ -5,11 +5,31 @@ import emailStrategy from './email.strategy'
 const sendAccountCreationEmail = ({ name, email, token }) => {
   const { subject, html } = emailStrategy[EMAILS_TYPES.ACTIVATION]({
     name,
-    email,
     token
   })
 
   return sendEmail({ email, subject, html })
 }
 
-export { sendAccountCreationEmail }
+const sendEmailChangeEmail = ({ name, email }) => {
+  const { subject, html } = emailStrategy[EMAILS_TYPES.EMAIL_CHANGE]({
+    name
+  })
+
+  return sendEmail({ email, subject, html })
+}
+
+const sendEmailActivationEmail = ({ name, email, token }) => {
+  const { subject, html } = emailStrategy[EMAILS_TYPES.EMAIL_ACTIVATION]({
+    name,
+    token
+  })
+
+  return sendEmail({ email, subject, html })
+}
+
+export {
+  sendAccountCreationEmail,
+  sendEmailChangeEmail,
+  sendEmailActivationEmail
+}

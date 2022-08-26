@@ -2,6 +2,10 @@ import omit from 'lodash/fp/omit'
 import usersModel from '../../models/users.model'
 import usersLeaguesModel from '../../models/usersLeagues.model'
 import { signUp } from '../auth/auth.controller'
+import {
+  sendEmailActivationEmail,
+  sendEmailChangeEmail
+} from '../email/email.service'
 
 const getUsers = async (req, res) => {
   const users = await usersModel.fetchAll()
@@ -50,6 +54,11 @@ const updateUser = async (req, res) => {
     role,
     status
   })
+
+  if (email !== user.email) {
+    await sendEmailChangeEmail({ name, email })
+    await sendEmailActivationEmail({ name, email })
+  }
 
   return res.json({
     data: id
