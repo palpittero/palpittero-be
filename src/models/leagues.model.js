@@ -20,11 +20,11 @@ const columns = [
   'updatedAt'
 ]
 
-const fetchAll = async ({ isPrivate, userId } = {}) => {
+const fetchAll = async ({ isPrivate, ownerId } = {}) => {
   const rows = await knex(TABLE_NAME)
     .select([
       `${TABLE_NAME}.*`,
-      appendUserIdSubQuery(userId),
+      appendOwnerIdSubQuery(knex.raw(`${TABLE_NAME}.id`)),
       'usersLeagues.userId AS usersLeaguesUserId',
       'usersLeagues.points AS usersLeaguesPoints',
       'usersLeagues.owner AS usersLeaguesOwner',
@@ -34,7 +34,7 @@ const fetchAll = async ({ isPrivate, userId } = {}) => {
     ])
     .leftJoin('usersLeagues', 'usersLeagues.leagueId', `${TABLE_NAME}.id`)
     .leftJoin('users', 'users.id', `usersLeagues.userId`)
-    .where(appendWhere({ isPrivate, userId }))
+    .where(appendWhere({ isPrivate, ownerId }))
 
   return appendEntities(rows)
 }
@@ -57,13 +57,16 @@ const fetchById = async (id) => {
   return appendEntities(rows)[0]
 }
 
-const appendUserIdSubQuery = (userId) => {
+const appendOwnerIdSubQuery = (leagueId) => {
   return knex.raw(
     `(${knex('usersLeagues')
       .select('userId')
-      .leftJoin(TABLE_NAME, 'leagueId', `${TABLE_NAME}.id`)
-      .where(omitBy(isNil({ userId })))
-      .toString()}) AS userId`
+      // .leftJoin(TABLE_NAME, 'leagueId', `${TABLE_NAME}.id`)
+      .where({
+        leagueId,
+        owner: 1
+      })
+      .toString()}) AS ownerId`
   )
 }
 
@@ -104,9 +107,9 @@ const appendEntities = (rows) =>
     values
   )(rows)
 
-const appendWhere = ({ isPrivate, userId }) =>
+const appendWhere = ({ isPrivate, ownerId }) =>
   omitBy(isNil, {
-    ['usersLeagues.userId']: userId,
+    ownerId,
     [`${TABLE_NAME}.private`]: isPrivate
   })
 

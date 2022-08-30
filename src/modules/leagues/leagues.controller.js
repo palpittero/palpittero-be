@@ -165,8 +165,8 @@ const getPublicLeagues = async (req, res) => {
 }
 
 const getLoggedUserLeagues = async (req, res) => {
-  const userId = res.locals.jwt.user.id
-  const leagues = await leaguesModel.fetchAll({ userId })
+  const ownerId = res.locals.jwt.user.id
+  const leagues = await leaguesModel.fetchAll({ ownerId })
 
   res.json({
     data: leagues
