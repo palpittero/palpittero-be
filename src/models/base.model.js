@@ -1,5 +1,6 @@
 import forEach from 'lodash/fp/forEach'
 import knex from '../database'
+import { STATUS } from '../shared/constants'
 
 export default (tableName, columns = []) => {
   const fetchAll = async (where = {}) => {
@@ -10,6 +11,8 @@ export default (tableName, columns = []) => {
         query.whereLike(column, value)
       }
     }, where)
+
+    query.where('status', '<>', STATUS.DELETED)
 
     return query
   }
@@ -31,12 +34,23 @@ export default (tableName, columns = []) => {
     return knex.raw(insert)
   }
 
+  const deleteMany = ({ columnName = 'id', values }, soft) => {
+    if (soft) {
+      return knex(tableName)
+        .update({ status: STATUS.DELETED })
+        .whereIn(columnName, values)
+    }
+
+    return knex(tableName).del().whereIn(columnName, values)
+  }
+
   return {
     fetchAll,
     fetchById,
     insert,
     update,
     delete: del,
-    replace
+    replace,
+    deleteMany
   }
 }

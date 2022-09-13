@@ -6,9 +6,12 @@ module.exports = {
       table.string('name').notNullable()
       table
         .integer('championshipId')
+        .unsigned()
         .notNullable()
         .references('id')
         .inTable('championships')
+        .onDelete('CASCADE')
+        .onUpdate('CASCADE')
       table
         .enu('type', ['regularTime', 'extraTime', 'penalties'])
         .defaultTo('regularTime')

@@ -2,7 +2,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 export default {
-  development: {
+  memory: {
     client: 'sqlite3',
     debug: true,
     connection: {
@@ -15,6 +15,26 @@ export default {
       tableName: 'knex_migrations'
     },
     useNullAsDefault: true
+  },
+  development: {
+    client: 'mysql',
+    debug: true,
+    connection: {
+      host: process.env.DB_HOST,
+      user: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_DATABASE
+    },
+    pool: {
+      min: 2,
+      max: 10
+    },
+    seeds: {
+      directory: './data/seeds'
+    },
+    migrations: {
+      tableName: 'knex_migrations'
+    }
   },
   production: {
     client: 'mysql',

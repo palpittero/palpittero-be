@@ -6,6 +6,7 @@ import omit from 'lodash/fp/omit'
 import omitBy from 'lodash/fp/omitBy'
 import isNil from 'lodash/fp/isNil'
 import values from 'lodash/fp/values'
+import { STATUS } from '../shared/constants'
 
 const TABLE_NAME = 'championships'
 
@@ -26,6 +27,9 @@ const fetchAll = async () => {
       `${TABLE_NAME}.id`
     )
     .leftJoin('teams', 'teams.id', `teamsChampionships.teamId`)
+    .where({
+      [`${TABLE_NAME}.status`]: STATUS.ACTIVE
+    })
 
   return appendEntities(rows)
 }
@@ -44,7 +48,12 @@ const fetchById = async (id) => {
       `${TABLE_NAME}.id`
     )
     .leftJoin('teams', 'teams.id', `teamsChampionships.teamId`)
-    .where({ [`${TABLE_NAME}.id`]: id })
+    .where(
+      appendWhere({
+        [`${TABLE_NAME}.id`]: id,
+        [`${TABLE_NAME}.status`]: STATUS.ACTIVE
+      })
+    )
 
   return appendEntities(rows)[0]
 }
@@ -57,7 +66,12 @@ const fetchByLeague = async ({ leagueId }) => {
       'leaguesChampionships.championshipId',
       `${TABLE_NAME}.id`
     )
-    .where(appendWhere({ leagueId }))
+    .where(
+      appendWhere({
+        leagueId,
+        [`${TABLE_NAME}.status`]: STATUS.ACTIVE
+      })
+    )
     .groupBy(`${TABLE_NAME}.id`)
 
   return appendEntities(rows)
@@ -89,9 +103,10 @@ const appendEntities = (rows) =>
     values
   )(rows)
 
-const appendWhere = ({ leagueId }) =>
+const appendWhere = ({ leagueId, ...where }) =>
   omitBy(isNil, {
-    'leaguesChampionships.leagueId': leagueId
+    'leaguesChampionships.leagueId': leagueId,
+    ...where
   })
 
 const championshipsModel = baseModel(TABLE_NAME, columns)

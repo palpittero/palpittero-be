@@ -4,7 +4,10 @@ import usersModel from '../../models/users.model'
 import omit from 'lodash/fp/omit'
 import { generateTokens } from '../../utils/auth'
 import { STATUS } from '../../shared/constants'
-import { sendAccountCreationEmail } from '../email/email.service'
+import {
+  sendAccountCreationEmail,
+  sendPasswordResetEmail
+} from '../email/email.service'
 import { validateToken } from '../../shared/token.service'
 import { USER_ROLES } from '../users/users.constants'
 
@@ -106,13 +109,9 @@ const signUp = async (req, res) => {
   const salt = bcrypt.genSaltSync(10)
   const passwordHash = bcrypt.hashSync(password, salt)
 
-  const token = jwt.sign(
-    { email },
-    process.env.USER_ACCOUNT_ACTIVATION_TOKEN_SECRET,
-    {
-      expiresIn: process.env.USER_ACCOUNT_ACTIVATION_TOKEN_EXPIRES_IN
-    }
-  )
+  const token = jwt.sign({ email }, process.env.AUTH_TOKEN_SECRET, {
+    expiresIn: process.env.AUTH_TOKEN_EXPIRES_IN
+  })
 
   await usersModel.insert({
     name,
@@ -131,7 +130,7 @@ const signUp = async (req, res) => {
 
 const activateAccount = async (req, res) => {
   const { token } = req.params
-  const secret = process.env.USER_ACCOUNT_ACTIVATION_TOKEN_SECRET
+  const secret = process.env.AUTH_TOKEN_SECRET
 
   const tokenValidation = validateToken({ token, secret })
 
@@ -169,7 +168,84 @@ const recoverPassword = async (req, res) => {
     return res.sendStatus(404)
   }
 
-  // Todo
+  // const salt = bcrypt.genSaltSync(10)
+  // const passwordHash = bcrypt.hashSync(password, salt)
+
+  const token = jwt.sign({ email }, process.env.AUTH_TOKEN_SECRET, {
+    expiresIn: process.env.AUTH_TOKEN_EXPIRES_IN
+  })
+
+  // await usersModel.insert({
+  //   name,
+  //   email,
+  //   // password: passwordHash,
+  //   token,
+  //   role,
+  //   phone,
+  //   status: STATUS.INACTIVE
+  // })
+
+  await sendPasswordResetEmail({ name: user.name, email, token })
+
+  return res.sendStatus(200)
+}
+
+const resetPassword = async (req, res) => {
+  const { token, password, passwordConfirmation } = req.body
+  const secret = process.env.AUTH_TOKEN_SECRET
+
+  const tokenValidation = validateToken({ token, secret })
+  console.log(tokenValidation)
+
+  if (!tokenValidation) {
+    return res.sendStatus(400)
+  }
+
+  if (password !== passwordConfirmation) {
+    return res.sendStatus(400)
+  }
+
+  const { email } = tokenValidation
+
+  const user = await usersModel.fetchByEmail(email)
+
+  if (!user) {
+    return res.sendStatus(404)
+  }
+
+  // if (user.status === STATUS.ACTIVE) {
+  //   return res.sendStatus(200)
+  // }
+  const salt = bcrypt.genSaltSync(10)
+  const passwordHash = bcrypt.hashSync(password, salt)
+
+  await usersModel.update({
+    id: user.id,
+    token: null,
+    password: passwordHash
+  })
+
+  return res.sendStatus(200)
+}
+
+const validate = async (req, res) => {
+  const { token } = req.params
+  const secret = process.env.AUTH_TOKEN_SECRET
+
+  const tokenValidation = validateToken({ token, secret })
+
+  if (!tokenValidation) {
+    return res.sendStatus(422)
+  }
+
+  const { email } = tokenValidation
+
+  const user = await usersModel.fetchByEmail(email)
+
+  if (!user) {
+    return res.sendStatus(404)
+  }
+
   return res.sendStatus(200)
 }
 
@@ -180,5 +256,7 @@ export {
   getLoggedUser,
   signUp,
   recoverPassword,
-  activateAccount
+  activateAccount,
+  resetPassword,
+  validate
 }

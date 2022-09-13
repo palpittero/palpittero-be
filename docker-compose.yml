@@ -1,0 +1,23 @@
+version: "3"
+
+services:
+  mariadb:
+    image: mariadb:latest
+    container_name: docker-mariadb
+    ports:
+      - "3306:3306"
+    environment: 
+      MYSQL_ROOT_PASSWORD: "AVqwCLvea4EsDWt4"
+    networks:
+      - docker-service
+    volumes:
+      - .docker/init-database.sql:/docker-entrypoint-initdb.d/init-database.sql
+      - maria-data:/data/db
+
+networks:
+  docker-service:
+    driver: bridge
+
+volumes:
+  maria-data:
+    driver: local

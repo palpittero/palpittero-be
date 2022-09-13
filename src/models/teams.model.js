@@ -3,6 +3,7 @@ import baseModel from './base.model'
 import omit from 'lodash/fp/omit'
 import omitBy from 'lodash/fp/omitBy'
 import isNil from 'lodash/fp/isNil'
+import { STATUS } from '../shared/constants'
 
 const TABLE_NAME = 'teams'
 
@@ -12,7 +13,7 @@ const fetchByChampionship = async (championshipId) => {
   const rows = await knex(TABLE_NAME)
     .select([`${TABLE_NAME}.*`])
     .join('teamsChampionships', 'teamsChampionships.teamId', `${TABLE_NAME}.id`)
-    .where(appendWhere({ championshipId }))
+    .where(appendWhere({ championshipId, status: STATUS.ACTIVE }))
     .groupBy(`${TABLE_NAME}.id`)
 
   return appendEntities(rows)
@@ -33,10 +34,10 @@ const appendEntities = (rows) => {
   }))
 }
 
-const appendWhere = ({ leagueId, status }) =>
+const appendWhere = ({ championshipId, status }) =>
   omitBy(isNil, {
-    'usersLeagues.leagueId': leagueId,
-    'usersLeagues.status': status
+    'teamsChampionships.championshipId': championshipId,
+    [`${TABLE_NAME}.status`]: status
   })
 
 const teamsModel = baseModel(TABLE_NAME, columns)

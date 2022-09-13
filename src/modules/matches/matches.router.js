@@ -4,7 +4,8 @@ import {
   getMatch,
   createMatch,
   updateMatch,
-  deleteMatch
+  deleteMatch,
+  deleteMatches
 } from './matches.controller'
 
 const router = Router()
@@ -14,5 +15,6 @@ router.get('/:id', getMatch)
 router.post('/', createMatch)
 router.put('/:id', updateMatch)
 router.delete('/:id', deleteMatch)
+router.post('/delete-many', deleteMatches)
 
 export default router

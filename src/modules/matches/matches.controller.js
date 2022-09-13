@@ -1,3 +1,4 @@
+import guessesModel from '../../models/guesses.model'
 import matchesModel from '../../models/matches.model'
 
 const getMatches = async (req, res) => {
@@ -25,11 +26,13 @@ const getMatch = async (req, res) => {
 const createMatch = async (req, res) => {
   const { roundId, homeTeamId, awayTeamId, date } = req.body
 
+  const parsedDate = new Date(date)
+
   const [id] = await matchesModel.insert({
     roundId,
     homeTeamId,
     awayTeamId,
-    date
+    date: parsedDate
   })
 
   res.status(200).json({ data: id })
@@ -54,24 +57,26 @@ const updateMatch = async (req, res) => {
     extraTimeAwayTeamGoals,
     penaltiesHomeTeamGoals,
     penaltiesAwayTeamGoals,
-    result,
-    status
+    result
+    // status
   } = req.body
+
+  const parsedDate = new Date(date)
 
   await matchesModel.update({
     id,
     roundId,
     homeTeamId,
     awayTeamId,
-    date,
+    date: parsedDate,
     regularTimeHomeTeamGoals,
     regularTimeAwayTeamGoals,
     extraTimeHomeTeamGoals,
     extraTimeAwayTeamGoals,
     penaltiesHomeTeamGoals,
     penaltiesAwayTeamGoals,
-    result,
-    status
+    result
+    // status
   })
 
   return res.json({
@@ -91,4 +96,24 @@ const deleteMatch = async (req, res) => {
   return res.sendStatus(204)
 }
 
-export { getMatches, getMatch, createMatch, updateMatch, deleteMatch }
+const deleteMatches = async (req, res) => {
+  const { ids } = req.body
+  // const match = await matchesModel.fetchById(id)
+
+  // if (!match) {
+  //   return res.sendStatus(404)
+  // }
+
+  await matchesModel.deleteMany({ values: ids })
+  // await guessesModel.deleteMany({ columnName: 'matchId', values: ids }, false)
+  return res.sendStatus(204)
+}
+
+export {
+  getMatches,
+  getMatch,
+  createMatch,
+  updateMatch,
+  deleteMatch,
+  deleteMatches
+}

@@ -25,6 +25,22 @@ const columns = [
   'awayTeamName'
 ]
 
+const MATCH_STATUS_QUERY = `
+  IF(
+    NOW() > DATE_ADD(date, INTERVAL 240 MINUTE),
+    "finished",
+    IF(
+      NOW() < date AND DATE_ADD(NOW(), INTERVAL 60 MINUTE) > date,
+      "preparation",
+      IF (
+        NOW() < DATE_ADD(date, INTERVAL 240 MINUTE) AND NOW() > date,
+        "in_progress",
+        "scheduled"
+      )
+    )
+  ) AS status
+`
+
 const matchesModel = baseModel(TABLE_NAME, columns)
 
 const fetchById = async (id) => {
@@ -42,9 +58,7 @@ const fetchById = async (id) => {
       'championship.name AS championshipName',
       'championship.year AS championshipYear',
       'championship.status AS championshipStatus',
-      knex.raw(
-        `IIF(DATETIME('now') > DATETIME(date, '+240 minutes'), "finished", IIF(DATETIME('now') < date AND DATETIME(DATETIME('now'), '+60 minutes') > date, "preparation", "scheduled")) AS status`
-      )
+      knex.raw(MATCH_STATUS_QUERY)
     ])
     .join('teams AS homeTeam', 'homeTeam.id', `${TABLE_NAME}.homeTeamId`)
     .join('teams AS awayTeam', 'awayTeam.id', `${TABLE_NAME}.awayTeamId`)
@@ -74,9 +88,7 @@ const fetchAll = async ({ status, date, roundId }) => {
       'championship.name AS championshipName',
       'championship.year AS championshipYear',
       'championship.status AS championshipStatus',
-      knex.raw(
-        `IIF(DATETIME('now') > DATETIME(date, '+240 minutes'), "finished", IIF(DATETIME('now') < date AND DATETIME(DATETIME('now'), '+60 minutes') > date, "preparation", "scheduled")) AS status`
-      )
+      knex.raw(MATCH_STATUS_QUERY)
     ])
     .join('teams AS homeTeam', 'homeTeam.id', `${TABLE_NAME}.homeTeamId`)
     .join('teams AS awayTeam', 'awayTeam.id', `${TABLE_NAME}.awayTeamId`)
@@ -110,9 +122,7 @@ const fetchByChampionship = async ({ championshipId }) => {
       'championship.name AS championshipName',
       'championship.year AS championshipYear',
       'championship.status AS championshipStatus',
-      knex.raw(
-        `IIF(DATETIME('now') > DATETIME(date, '+240 minutes'), "finished", IIF(DATETIME('now') < date AND DATETIME(DATETIME('now'), '+60 minutes') > date, "preparation", "scheduled")) AS status`
-      )
+      knex.raw(MATCH_STATUS_QUERY)
     ])
     .join('teams AS homeTeam', 'homeTeam.id', `${TABLE_NAME}.homeTeamId`)
     .join('teams AS awayTeam', 'awayTeam.id', `${TABLE_NAME}.awayTeamId`)
@@ -126,6 +136,12 @@ const fetchByChampionship = async ({ championshipId }) => {
 
   return appendEntities(rows)
 }
+
+const deleteByTeams = (teamsIds) =>
+  knex(TABLE_NAME)
+    .del()
+    .whereIn({ homeTeamId: teamsIds })
+    .whereIn({ awayTeamId: teamsIds })
 
 const appendEntities = (rows) => {
   const JOIN_FIELDS = [
@@ -148,6 +164,7 @@ const appendEntities = (rows) => {
       ...result,
       {
         ...omit(JOIN_FIELDS, row),
+        date: new Date(row.date),
         homeTeam: {
           id: row.homeTeamId,
           name: row.homeTeamName,
@@ -185,5 +202,6 @@ export default {
   ...matchesModel,
   fetchById,
   fetchAll,
-  fetchByChampionship
+  fetchByChampionship,
+  deleteByTeams
 }

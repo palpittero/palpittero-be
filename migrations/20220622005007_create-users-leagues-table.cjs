@@ -4,10 +4,17 @@ module.exports = {
       table.increments('id')
       table
         .integer('leagueId')
+        .unsigned()
         .notNullable()
         .references('id')
         .inTable('leagues')
-      table.integer('userId').notNullable().references('id').inTable('users')
+        .onDelete('CASCADE')
+      table
+        .integer('userId')
+        .unsigned()
+        .references('id')
+        .inTable('users')
+        .onDelete('SET NULL')
       table.integer('points').defaultTo(0)
       table.boolean('owner').defaultTo(false)
       table.enu('status', ['invited', 'approved']).defaultTo('invited')

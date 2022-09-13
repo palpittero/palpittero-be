@@ -1,11 +1,13 @@
 import omit from 'lodash/fp/omit'
 import usersModel from '../../models/users.model'
 import usersLeaguesModel from '../../models/usersLeagues.model'
+// import guessesModel from '../../models/guesses.model'
 import { signUp } from '../auth/auth.controller'
 import {
   sendEmailActivationEmail,
   sendEmailChangeEmail
 } from '../email/email.service'
+// import leaguesModel from '../../models/leagues.model'
 
 const getUsers = async (req, res) => {
   const users = await usersModel.fetchAll()
@@ -56,7 +58,7 @@ const updateUser = async (req, res) => {
   })
 
   if (email !== user.email) {
-    await sendEmailChangeEmail({ name, email })
+    await sendEmailChangeEmail({ name, email: user.email })
     await sendEmailActivationEmail({ name, email })
   }
 
@@ -74,6 +76,38 @@ const deleteUser = async (req, res) => {
   }
 
   await usersModel.delete({ id })
+  // await usersLeaguesModel.deleteMany({ columnName: 'userId', values: [id] })
+  await usersLeaguesModel.unlinkLeagues([id])
+
+  return res.sendStatus(204)
+}
+
+const deleteUsers = async (req, res) => {
+  const { ids } = req.body
+  // const usersLeaguesIds = []
+
+  // const leaguesIds = (await leaguesModel.fetchAll({ ownersIds: ids })).map(({ id }) => id)
+  // console.log({ leaguesIds })
+  // await ids.map(async (ownerId) => {
+  // console.log({ leaguesIds })
+  // usersLeaguesIds.push(leaguesIds)
+  // })
+
+  // const usersLeaguesIds = ids.reduce(async (result, ownerId) => {
+  //   const leaguesIds = (await leaguesModel.fetchAll({ ownerId })).map(
+  //     ({ id }) => id
+  //   )
+
+  //   return [...result, ...leaguesIds]
+  // // }, [])
+
+  // console.log({ usersLeaguesIds })
+
+  await usersLeaguesModel.unlinkLeagues(ids)
+  await usersLeaguesModel.deleteMany({ columnName: 'userId', values: ids })
+  await usersModel.deleteMany({ values: ids })
+  // await guessesModel.deleteMany({ columnName: 'userId', values: ids })
+
   return res.sendStatus(204)
 }
 
@@ -94,4 +128,12 @@ const getUserLeagues = async (req, res) => {
   })
 }
 
-export { getUsers, getUser, createUser, updateUser, deleteUser, getUserLeagues }
+export {
+  getUsers,
+  getUser,
+  createUser,
+  updateUser,
+  deleteUser,
+  deleteUsers,
+  getUserLeagues
+}

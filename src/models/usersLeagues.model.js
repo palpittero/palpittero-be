@@ -24,13 +24,19 @@ const fetchByLeague = async ({ id, status }) => {
     .where(omitBy(isNil, { leagueId: id, [`${TABLE_NAME}.status`]: status }))
 }
 
-const deleteByLeague = async (leagueId) => {
-  return await knex(TABLE_NAME).del().where({ leagueId })
-}
+const deleteByLeague = async (leagueId) =>
+  await knex(TABLE_NAME).del().where({ leagueId })
+
+const unlinkLeagues = async (ownersIds) =>
+  await knex(TABLE_NAME)
+    .update({ userId: 1 })
+    .whereIn('userId', ownersIds)
+    .andWhere({ owner: 1 })
 
 export default {
   ...usersLeaguesModel,
   fetchByUser,
   fetchByLeague,
-  deleteByLeague
+  deleteByLeague,
+  unlinkLeagues
 }

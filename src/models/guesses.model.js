@@ -22,6 +22,22 @@ export const TABLE_FIELDS = [
   'updatedAt'
 ]
 
+const MATCH_STATUS_QUERY = `
+  IF(
+    NOW() > DATE_ADD(date, INTERVAL 240 MINUTE),
+    "finished",
+    IF(
+      NOW() < date AND DATE_ADD(NOW(), INTERVAL 60 MINUTE) > date,
+      "preparation",
+      IF (
+        NOW() < DATE_ADD(date, INTERVAL 240 MINUTE) AND NOW() > date,
+        "in_progress",
+        "scheduled"
+      )
+    )
+  ) AS status
+`
+
 const guessesModel = baseModel(TABLE_NAME)
 
 const fetchById = async (id) => {
@@ -63,9 +79,7 @@ const fetchAll = async ({ userId, leagueId, matchId, roundId } = {}) => {
       'homeTeam.badge AS homeTeamBadge',
       'awayTeam.name AS awayTeamName',
       'awayTeam.badge AS awayTeamBadge',
-      knex.raw(
-        `IIF(DATETIME('now') > DATETIME(match.date, '+240 minutes'), "finished", IIF(DATETIME('now') < date AND DATETIME(DATETIME('now'), '+60 minutes') > match.date, "preparation", "scheduled")) AS status`
-      )
+      knex.raw(MATCH_STATUS_QUERY)
     ])
     .join('users AS user', 'user.id', `${TABLE_NAME}.userId`)
     .join('leagues AS league', 'league.id', `${TABLE_NAME}.leagueId`)

@@ -99,6 +99,18 @@ const deleteChampionship = async (req, res) => {
   return res.sendStatus(204)
 }
 
+const deleteChampionships = async (req, res) => {
+  const { ids } = req.body
+
+  await championshipsModel.deleteMany({ values: ids })
+  await teamsChampionshipsModel.deleteMany({
+    columnName: 'championshipId',
+    values: ids
+  })
+
+  return res.sendStatus(204)
+}
+
 const getChampionshipRounds = async (req, res) => {
   const { id } = req.params
 
@@ -130,7 +142,7 @@ const getChampionshipRounds = async (req, res) => {
       ...round,
       first: round.id === firstRoundId,
       last: round.id === lastRoundId,
-      current: round.id === currentRoundId || round.id === lastRoundId
+      current: round.id === currentRoundId
     }))
   })
 }
@@ -157,6 +169,7 @@ export {
   createChampionship,
   updateChampionship,
   deleteChampionship,
+  deleteChampionships,
   getChampionshipRounds,
   getChampionshipTeams
 }

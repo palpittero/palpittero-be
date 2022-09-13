@@ -2,13 +2,27 @@ module.exports = {
   up: function (knex) {
     return knex.schema.createTable('guesses', function (table) {
       table.increments('id')
-      table.integer('userId').notNullable().references('id').inTable('users')
-      table.integer('matchId').notNullable().references('id').inTable('matches')
+      table
+        .integer('userId')
+        .unsigned()
+        .notNullable()
+        .references('id')
+        .inTable('users')
+        .onDelete('CASCADE')
+      table
+        .integer('matchId')
+        .unsigned()
+        .notNullable()
+        .references('id')
+        .inTable('matches')
+        .onDelete('CASCADE')
       table
         .integer('leagueId')
+        .unsigned()
         .notNullable()
         .references('id')
         .inTable('leagues')
+        .onDelete('CASCADE')
       table.integer('homeTeamRegularTimeGoals')
       table.integer('awayTeamRegularTimeGoals')
       table.integer('homeTeamExtraTimeGoals')

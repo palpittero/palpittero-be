@@ -1,8 +1,10 @@
 import teamsModel from '../../models/teams.model'
+import teamsChampionshipsModel from '../../models/teamsChampionships.model'
+import matchesModel from '../../models/matches.model'
 
 const getTeams = async (req, res) => {
   const { query } = req
-  console.log('query', query)
+
   const teams = await teamsModel.fetchAll(query)
 
   res.json({
@@ -68,4 +70,22 @@ const deleteTeam = async (req, res) => {
   return res.sendStatus(204)
 }
 
-export { getTeams, getTeam, createTeam, updateTeam, deleteTeam }
+const deleteTeams = async (req, res) => {
+  const { ids } = req.body
+  // const team = await teamsModel.fetchById(id)
+
+  // if (!team) {
+  // return res.sendStatus(404)
+  // }
+
+  await teamsModel.deleteMany({ values: ids })
+  // await teamsChampionshipsModel.deleteMany({
+  //   columnName: 'teamId',
+  //   values: ids
+  // })
+  // await matchesModel.deleteByTeams(ids)
+
+  return res.sendStatus(204)
+}
+
+export { getTeams, getTeam, createTeam, updateTeam, deleteTeam, deleteTeams }

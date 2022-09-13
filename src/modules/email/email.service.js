@@ -8,7 +8,7 @@ const sendAccountCreationEmail = ({ name, email, token }) => {
     token
   })
 
-  return sendEmail({ email, subject, html })
+  return sendEmail({ to: email, subject, html })
 }
 
 const sendEmailChangeEmail = ({ name, email }) => {
@@ -16,7 +16,7 @@ const sendEmailChangeEmail = ({ name, email }) => {
     name
   })
 
-  return sendEmail({ email, subject, html })
+  return sendEmail({ to: email, subject, html })
 }
 
 const sendEmailActivationEmail = ({ name, email, token }) => {
@@ -25,11 +25,21 @@ const sendEmailActivationEmail = ({ name, email, token }) => {
     token
   })
 
-  return sendEmail({ email, subject, html })
+  return sendEmail({ to: email, subject, html })
+}
+
+const sendPasswordResetEmail = ({ name, email, token }) => {
+  const { subject, html } = emailStrategy[EMAILS_TYPES.PASSWORD_RESET]({
+    name,
+    token
+  })
+
+  return sendEmail({ to: email, subject, html })
 }
 
 export {
   sendAccountCreationEmail,
   sendEmailChangeEmail,
-  sendEmailActivationEmail
+  sendEmailActivationEmail,
+  sendPasswordResetEmail
 }

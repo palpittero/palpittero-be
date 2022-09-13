@@ -1,4 +1,5 @@
 export const USER_ROLES = {
   ADMIN: 'admin',
-  PLAYER: 'player'
+  PLAYER: 'player',
+  SYSTEM: 'system'
 }

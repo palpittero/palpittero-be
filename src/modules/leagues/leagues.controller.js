@@ -5,6 +5,7 @@ import { appendUsersLeagues } from '../usersLeagues/usersLeagues.helpers'
 import { appendLeaguesChampionships } from '../leaguesChampionships/leaguesChampionships.helpers'
 import leaguesChampionshipsModel from '../../models/leaguesChampionships.model'
 import championshipsModel from '../../models/championships.model'
+import guessesModel from '../../models/guesses.model'
 
 const getLeagues = async (req, res) => {
   const { private: isPrivate, ownerId } = req.query
@@ -121,6 +122,25 @@ const deleteLeague = async (req, res) => {
   return res.sendStatus(204)
 }
 
+const deleteLeagues = async (req, res) => {
+  const { ids } = req.body
+  // const user = await usersModel.fetchById(id)
+
+  // if (!user) {
+  // return res.sendStatus(404)
+  // }
+
+  await leaguesModel.deleteMany({ values: ids })
+  // await leaguesChampionshipsModel.deleteMany({
+  //   columnName: 'leagueId',
+  //   values: ids
+  // })
+  // await usersLeaguesModel.deleteMany({ columnName: 'leagueId', values: ids })
+  // await guessesModel.deleteMany({ columnName: 'leagueId', values: ids })
+
+  return res.sendStatus(204)
+}
+
 const getLeagueUsers = async (req, res) => {
   const { id } = req.params
   const { status } = req.query
@@ -156,17 +176,17 @@ const getLeagueChampionships = async (req, res) => {
   })
 }
 
-const getPublicLeagues = async (req, res) => {
-  const leagues = await leaguesModel.fetchAll({ isPrivate: 0 })
+const getLoggedUserLeagues = async (req, res) => {
+  const ownerId = res.locals.jwt.user.id
+  const leagues = await leaguesModel.fetchAll({ ownerId })
 
   res.json({
     data: leagues
   })
 }
 
-const getLoggedUserLeagues = async (req, res) => {
-  const ownerId = res.locals.jwt.user.id
-  const leagues = await leaguesModel.fetchAll({ ownerId })
+const getPublicLeagues = async (req, res) => {
+  const leagues = await leaguesModel.fetchAll({ isPrivate: 0 })
 
   res.json({
     data: leagues
@@ -179,6 +199,7 @@ export {
   createLeague,
   updateLeague,
   deleteLeague,
+  deleteLeagues,
   getLeagueUsers,
   getLeagueChampionships,
   getLoggedUserLeagues,

@@ -6,6 +6,7 @@ import values from 'lodash/fp/values'
 import reduce from 'lodash/fp/reduce'
 import omitBy from 'lodash/fp/omitBy'
 import isNil from 'lodash/fp/isNil'
+import { STATUS } from '../shared/constants'
 
 const TABLE_NAME = 'leagues'
 
@@ -20,11 +21,10 @@ const columns = [
   'updatedAt'
 ]
 
-const fetchAll = async ({ isPrivate, ownerId } = {}) => {
-  const rows = await knex(TABLE_NAME)
+const fetchAll = async ({ isPrivate, ownerId, ownersIds } = {}) => {
+  const query = knex(TABLE_NAME)
     .select([
       `${TABLE_NAME}.*`,
-      appendOwnerIdSubQuery(knex.raw(`${TABLE_NAME}.id`)),
       'usersLeagues.userId AS usersLeaguesUserId',
       'usersLeagues.points AS usersLeaguesPoints',
       'usersLeagues.owner AS usersLeaguesOwner',
@@ -34,9 +34,30 @@ const fetchAll = async ({ isPrivate, ownerId } = {}) => {
     ])
     .leftJoin('usersLeagues', 'usersLeagues.leagueId', `${TABLE_NAME}.id`)
     .leftJoin('users', 'users.id', `usersLeagues.userId`)
-    .where(appendWhere({ isPrivate, ownerId }))
+    .where(
+      appendWhere({
+        isPrivate
+      })
+    )
+    .where(`${TABLE_NAME}.status`, '<>', STATUS.DELETED)
 
-  return appendEntities(rows)
+  if (ownerId) {
+    query.whereRaw(
+      `${appendOwnerIdSubQuery(knex.raw(`${TABLE_NAME}.id`))} = ${ownerId}`
+    )
+  }
+
+  if (ownersIds) {
+    query.whereRaw(
+      `${appendOwnerIdSubQuery(
+        knex.raw(`${TABLE_NAME}.id`)
+      )} IN (${ownersIds.join(',')})`
+    )
+  }
+
+  // query.groupBy(`${TABLE_NAME}.id`)
+
+  return appendEntities(await query)
 }
 
 const fetchById = async (id) => {
@@ -53,6 +74,7 @@ const fetchById = async (id) => {
     .leftJoin('usersLeagues', 'usersLeagues.leagueId', `${TABLE_NAME}.id`)
     .leftJoin('users', 'users.id', `usersLeagues.id`)
     .where({ [`${TABLE_NAME}.id`]: id })
+    .where(`${TABLE_NAME}.status`, '<>', STATUS.DELETED)
 
   return appendEntities(rows)[0]
 }
@@ -66,7 +88,7 @@ const appendOwnerIdSubQuery = (leagueId) => {
         leagueId,
         owner: 1
       })
-      .toString()}) AS ownerId`
+      .toString()})`
   )
 }
 
@@ -96,6 +118,8 @@ const appendEntities = (rows) =>
         ? [...(result[row.id]?.users || []), user]
         : result[row.id]?.users || []
 
+      // console.log({ users })
+
       return {
         ...result,
         [row.id]: {
@@ -107,9 +131,8 @@ const appendEntities = (rows) =>
     values
   )(rows)
 
-const appendWhere = ({ isPrivate, ownerId }) =>
+const appendWhere = ({ isPrivate }) =>
   omitBy(isNil, {
-    ownerId,
     [`${TABLE_NAME}.private`]: isPrivate
   })
 

@@ -6,7 +6,8 @@ import {
   updateChampionship,
   deleteChampionship,
   getChampionshipRounds,
-  getChampionshipTeams
+  getChampionshipTeams,
+  deleteChampionships
 } from './championships.controller'
 
 const router = Router()
@@ -18,5 +19,6 @@ router.get('/:id/teams', getChampionshipTeams)
 router.post('/', createChampionship)
 router.put('/:id', updateChampionship)
 router.delete('/:id', deleteChampionship)
+router.post('/delete-many', deleteChampionships)
 
 export default router

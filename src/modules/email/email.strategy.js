@@ -1,3 +1,4 @@
+import { getAppRoute } from '../../utils/misc'
 import { EMAILS_TYPES } from './email.constants'
 
 const activation = ({ name, token }) => {
@@ -8,10 +9,11 @@ const activation = ({ name, token }) => {
   <p>Obrigado por escolher o Palpittero.</p>
 
   <p>Clique no link abaixo para ativar a sua conta.</p>
-  <br />
 
   <p>
-    <a href="${process.env.EMAIL_ACCOUNT_ACTIVATION_LINK}?token=${token}" target="_blank">
+    <a href="${getAppRoute(process.env.EMAIL_ACCOUNT_ACTIVATION_ROUTE, {
+      token
+    })}" target="_blank">
       Ativar Conta
     <a>
   </p>
@@ -64,8 +66,36 @@ const emailActivation = ({ name }) => {
   }
 }
 
+const emailPasswordReset = ({ name, token }) => {
+  const subject =
+    'Uma redefinição de senha foi solicitada na sua conta Palpittero'
+
+  const html = `<p>Olá ${name},</p>
+  
+  <p>Utilize o link abaixo para definir uma nova senha para a sua conta.</p>
+
+  <p>
+    <a href="${getAppRoute(process.env.EMAIL_PASSWORD_RESET_ROUTE, {
+      token
+    })}" target="_blank">
+      Definir nova senha
+    <a>
+  </p>
+
+  <p>Caso você não tenha solicitado redefinição de senha, por favor, entre em contato conosco.</p>
+  <br />
+
+  Palpittero`
+
+  return {
+    subject,
+    html
+  }
+}
+
 export default {
   [EMAILS_TYPES.ACTIVATION]: activation,
   [EMAILS_TYPES.EMAIL_CHANGE]: emailChange,
-  [EMAILS_TYPES.EMAIL_ACTIVATION]: emailActivation
+  [EMAILS_TYPES.EMAIL_ACTIVATION]: emailActivation,
+  [EMAILS_TYPES.PASSWORD_RESET]: emailPasswordReset
 }

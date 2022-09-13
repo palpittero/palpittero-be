@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer'
 
-const sendEmail = ({ from = process.env.EMAIL_FROM, subject, html }) => {
+const sendEmail = ({ to, from = process.env.EMAIL_FROM, subject, html }) => {
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_SERVICE_HOST,
     port: Number(process.env.SMTP_SERVICE_PORT),
@@ -13,7 +13,7 @@ const sendEmail = ({ from = process.env.EMAIL_FROM, subject, html }) => {
   })
 
   const mailOptions = {
-    to: process.env.EMAIL_TO,
+    to,
     from,
     subject,
     html

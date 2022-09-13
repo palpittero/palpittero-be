@@ -4,14 +4,18 @@ module.exports = {
       table.increments('id')
       table
         .integer('leagueId')
+        .unsigned()
         .notNullable()
         .references('id')
         .inTable('leagues')
+        .onDelete('CASCADE')
       table
         .integer('championshipId')
+        .unsigned()
         .notNullable()
         .references('id')
         .inTable('championships')
+        .onDelete('CASCADE')
       table.enu('status', ['active', 'inactive', 'deleted']).defaultTo('active')
       table.unique(['leagueId', 'championshipId'])
       table.timestamps(true, true, true)

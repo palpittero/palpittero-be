@@ -4,7 +4,7 @@ exports.seed = async function (knex) {
     {
       id: 1,
       leagueId: 1,
-      userId: 1, // Dono
+      userId: 2, // Palpittero
       points: 0,
       owner: true,
       status: 'approved'
@@ -12,7 +12,7 @@ exports.seed = async function (knex) {
     {
       id: 2,
       leagueId: 1,
-      userId: 2, // Convidado
+      userId: 3, // Convidado
       points: 0,
       owner: false,
       status: 'invited'
@@ -20,7 +20,7 @@ exports.seed = async function (knex) {
     {
       id: 3,
       leagueId: 1,
-      userId: 3, // Colaborador
+      userId: 4, // Colaborador
       points: 0,
       owner: false,
       status: 'approved'
@@ -28,7 +28,7 @@ exports.seed = async function (knex) {
     {
       id: 4,
       leagueId: 2,
-      userId: 2, // Convidado
+      userId: 3, // Convidado
       points: 0,
       owner: true,
       status: 'approved'
@@ -36,7 +36,7 @@ exports.seed = async function (knex) {
     {
       id: 5,
       leagueId: 2,
-      userId: 1, // Dono
+      userId: 2, // Dono
       points: 0,
       owner: false,
       status: 'invited'
@@ -44,7 +44,7 @@ exports.seed = async function (knex) {
     {
       id: 6,
       leagueId: 2,
-      userId: 3, // Colaborador
+      userId: 4, // Colaborador
       points: 0,
       owner: false,
       status: 'invited'

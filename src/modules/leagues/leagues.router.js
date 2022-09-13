@@ -8,7 +8,8 @@ import {
   getLeagueUsers,
   getLoggedUserLeagues,
   getPublicLeagues,
-  getLeagueChampionships
+  getLeagueChampionships,
+  deleteLeagues
 } from './leagues.controller'
 
 const router = Router()
@@ -22,5 +23,6 @@ router.get('/:id/championships', getLeagueChampionships)
 router.post('/', createLeague)
 router.put('/:id', updateLeague)
 router.delete('/:id', deleteLeague)
+router.post('/delete-many', deleteLeagues)
 
 export default router
