@@ -68,45 +68,21 @@ const updateUser = async (req, res) => {
 }
 
 const deleteUser = async (req, res) => {
-  const id = parseInt(req.params.id)
-  const user = await usersModel.fetchById(id)
+  const { id } = req.params
 
-  if (!user) {
-    return res.sendStatus(404)
-  }
-
-  await usersModel.delete({ id })
-  // await usersLeaguesModel.deleteMany({ columnName: 'userId', values: [id] })
   await usersLeaguesModel.unlinkLeagues([id])
+  await usersLeaguesModel.deleteMany({ columnName: 'userId', values: [id] })
+  await usersModel.delete({ id })
 
   return res.sendStatus(204)
 }
 
 const deleteUsers = async (req, res) => {
   const { ids } = req.body
-  // const usersLeaguesIds = []
-
-  // const leaguesIds = (await leaguesModel.fetchAll({ ownersIds: ids })).map(({ id }) => id)
-  // console.log({ leaguesIds })
-  // await ids.map(async (ownerId) => {
-  // console.log({ leaguesIds })
-  // usersLeaguesIds.push(leaguesIds)
-  // })
-
-  // const usersLeaguesIds = ids.reduce(async (result, ownerId) => {
-  //   const leaguesIds = (await leaguesModel.fetchAll({ ownerId })).map(
-  //     ({ id }) => id
-  //   )
-
-  //   return [...result, ...leaguesIds]
-  // // }, [])
-
-  // console.log({ usersLeaguesIds })
 
   await usersLeaguesModel.unlinkLeagues(ids)
   await usersLeaguesModel.deleteMany({ columnName: 'userId', values: ids })
   await usersModel.deleteMany({ values: ids })
-  // await guessesModel.deleteMany({ columnName: 'userId', values: ids })
 
   return res.sendStatus(204)
 }
