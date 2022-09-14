@@ -7,6 +7,7 @@ import teams from './modules/teams/teams.router'
 import guesses from './modules/guesses/guesses.router'
 import usersLeagues from './modules/usersLeagues/usersLeagues.router'
 import championships from './modules/championships/championships.router'
+import dashboard from './modules/dashboard/dashboard.router'
 
 import { validateAccessToken } from './middleware/jwt.middleware'
 
@@ -27,5 +28,6 @@ router.use('/matches', validateAccessToken, matches)
 router.use('/guesses', validateAccessToken, guesses)
 router.use('/users-leagues', validateAccessToken, usersLeagues)
 router.use('/championships', validateAccessToken, championships)
+router.use('/dashboard', validateAccessToken, dashboard)
 
 export default router
