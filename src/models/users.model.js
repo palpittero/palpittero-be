@@ -32,13 +32,19 @@ const fetchByLeague = async ({ leagueId, status }) => {
   const rows = await knex(TABLE_NAME)
     .select([
       `${TABLE_NAME}.*`,
-      knex.raw('SUM(guesses.points) AS points'),
+      knex.raw('COALESCE(SUM(guesses.points), 0) AS points'),
       'usersLeagues.status AS usersLeaguesStatus',
-      'usersLeagues.owner AS usersLeaguesOwner',
-      'usersLeagues.points AS usersLeaguesPoints'
+      'usersLeagues.owner AS usersLeaguesOwner'
     ])
     .join('usersLeagues', 'usersLeagues.userId', `${TABLE_NAME}.id`)
-    .leftJoin('guesses', 'guesses.userId', `${TABLE_NAME}.id`)
+    .leftJoin('guesses', function () {
+      this.on('guesses.userId', '=', `usersLeagues.userId`).andOn(
+        'guesses.leagueId',
+        '=',
+        'usersLeagues.leagueId'
+      )
+    })
+    // .leftJoin('guesses', 'guesses.userId', `${TABLE_NAME}.id`)
     .where(appendWhere({ leagueId, status }))
     .groupBy(`${TABLE_NAME}.id`)
     .orderBy('points', 'desc')
@@ -50,14 +56,14 @@ const appendEntities = (rows) => {
   const USERS_LEAGUES_FIELDS = [
     'usersLeaguesStatus',
     'usersLeaguesOwner',
-    'usersLeaguesPoints'
+    'points'
   ]
 
   return rows.map((row) => ({
     ...omit(USERS_LEAGUES_FIELDS, row),
     status: row.usersLeaguesStatus,
     owner: row.usersLeaguesOwner,
-    points: row.usersLeaguesPoints
+    points: row.points
   }))
 }
 

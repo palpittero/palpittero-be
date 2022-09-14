@@ -2,8 +2,8 @@ import knex from '../database'
 import baseModel from './base.model'
 import pick from 'lodash/fp/pick'
 import omit from 'lodash/fp/omit'
-import omitBy from 'lodash/fp/omitBy'
-import isNil from 'lodash/fp/isNil'
+import pickBy from 'lodash/fp/pickBy'
+import identity from 'lodash/fp/identity'
 
 const TABLE_NAME = 'guesses'
 
@@ -160,7 +160,7 @@ const appendEntities = (rows) =>
   }, [])
 
 const appendWhere = ({ userId, leagueId, matchId, roundId }) =>
-  omitBy(isNil, {
+  pickBy(identity, {
     userId,
     leagueId,
     matchId,
