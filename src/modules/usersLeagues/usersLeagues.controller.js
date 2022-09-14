@@ -1,6 +1,8 @@
 import usersLeaguesModel from '../../models/usersLeagues.model'
 import leaguesModel from '../../models/leagues.model'
 import { USERS_LEAGUES_STATUSES } from './usersLeagues.constants'
+import { validateToken } from '../../shared/token.service'
+import usersModel from '../../models/users.model'
 
 const inviteUsers = async (req, res) => {
   const { leagueId, users } = req.body
@@ -26,16 +28,37 @@ const inviteUsers = async (req, res) => {
   res.sendStatus(201)
 }
 
-const approveUser = async (req, res) => {
-  const { leagueId, userId } = req.body
+const acceptInvitation = async (req, res) => {
+  const { token } = req.params
+  const secret = process.env.AUTH_TOKEN_SECRET
 
-  await usersLeaguesModel.update({
-    status: USERS_LEAGUES_STATUSES.APPROVED,
+  const tokenValidation = validateToken({ token, secret })
+
+  if (!tokenValidation) {
+    return res.sendStatus(400)
+  }
+
+  const { email, leagueId } = tokenValidation
+
+  const user = await usersModel.fetchByEmail(email)
+
+  if (!user) {
+    return res.sendStatus(404)
+  }
+
+  const userLeague = await usersLeaguesModel.fetchByUser({ id: user.id })
+
+  if (userLeague?.status === USERS_LEAGUES_STATUSES.APPROVED) {
+    return res.sendStatus(200)
+  }
+
+  await usersLeaguesModel.replace({
     leagueId,
-    userId
+    userId: user.id,
+    status: USERS_LEAGUES_STATUSES.APPROVED
   })
 
-  res.sendStatus(200)
+  return res.sendStatus(200)
 }
 
 const deleteUser = async (req, res) => {
@@ -49,4 +72,4 @@ const deleteUser = async (req, res) => {
   res.sendStatus(200)
 }
 
-export { inviteUsers, approveUser, deleteUser }
+export { inviteUsers, acceptInvitation, deleteUser }

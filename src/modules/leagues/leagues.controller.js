@@ -1,3 +1,4 @@
+import jwt from 'jsonwebtoken'
 import leaguesModel from '../../models/leagues.model'
 import usersModel from '../../models/users.model'
 import usersLeaguesModel from '../../models/usersLeagues.model'
@@ -5,7 +6,8 @@ import { appendUsersLeagues } from '../usersLeagues/usersLeagues.helpers'
 import { appendLeaguesChampionships } from '../leaguesChampionships/leaguesChampionships.helpers'
 import leaguesChampionshipsModel from '../../models/leaguesChampionships.model'
 import championshipsModel from '../../models/championships.model'
-import guessesModel from '../../models/guesses.model'
+import { sendLeagueInvitationEmail } from '../email/email.service'
+import { EMAIL_LEAGUE_VISIBILITY } from '../email/email.constants'
 
 const getLeagues = async (req, res) => {
   const { private: isPrivate, ownerId } = req.query
@@ -48,6 +50,10 @@ const createLeague = async (req, res) => {
     status
   })
 
+  const visibility = isPrivate
+    ? EMAIL_LEAGUE_VISIBILITY.PRIVATE
+    : EMAIL_LEAGUE_VISIBILITY.PUBLIC
+
   const ownerId = res.locals.jwt.user.id
   const usersLeagues = appendUsersLeagues({ leagueId, users, ownerId })
 
@@ -59,6 +65,27 @@ const createLeague = async (req, res) => {
   })
 
   await leaguesChampionshipsModel.replace(leaguesChampionships)
+
+  users
+    .filter(({ owner }) => !owner)
+    .map((user) => {
+      const token = jwt.sign(
+        { email: user.email, leagueId },
+        process.env.AUTH_TOKEN_SECRET,
+        {
+          expiresIn: process.env.AUTH_TOKEN_EXPIRES_IN
+        }
+      )
+
+      sendLeagueInvitationEmail({
+        name: user.name,
+        email: user.email,
+        league: name,
+        owner: res.locals.jwt.user.name,
+        visibility,
+        token
+      })
+    })
 
   res.status(201).json({ data: leagueId })
 }
@@ -93,8 +120,6 @@ const updateLeague = async (req, res) => {
   const ownerId = users.find(({ owner }) => owner)?.id || res.locals.jwt.user.id
   const usersLeagues = appendUsersLeagues({ leagueId, users, ownerId })
 
-  console.log({ usersLeagues })
-
   await usersLeaguesModel.deleteByLeague(leagueId)
   await usersLeaguesModel.replace(usersLeagues)
 
@@ -124,19 +149,8 @@ const deleteLeague = async (req, res) => {
 
 const deleteLeagues = async (req, res) => {
   const { ids } = req.body
-  // const user = await usersModel.fetchById(id)
-
-  // if (!user) {
-  // return res.sendStatus(404)
-  // }
 
   await leaguesModel.deleteMany({ values: ids })
-  // await leaguesChampionshipsModel.deleteMany({
-  //   columnName: 'leagueId',
-  //   values: ids
-  // })
-  // await usersLeaguesModel.deleteMany({ columnName: 'leagueId', values: ids })
-  // await guessesModel.deleteMany({ columnName: 'leagueId', values: ids })
 
   return res.sendStatus(204)
 }

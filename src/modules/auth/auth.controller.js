@@ -168,22 +168,9 @@ const recoverPassword = async (req, res) => {
     return res.sendStatus(404)
   }
 
-  // const salt = bcrypt.genSaltSync(10)
-  // const passwordHash = bcrypt.hashSync(password, salt)
-
   const token = jwt.sign({ email }, process.env.AUTH_TOKEN_SECRET, {
     expiresIn: process.env.AUTH_TOKEN_EXPIRES_IN
   })
-
-  // await usersModel.insert({
-  //   name,
-  //   email,
-  //   // password: passwordHash,
-  //   token,
-  //   role,
-  //   phone,
-  //   status: STATUS.INACTIVE
-  // })
 
   await sendPasswordResetEmail({ name: user.name, email, token })
 
@@ -195,7 +182,6 @@ const resetPassword = async (req, res) => {
   const secret = process.env.AUTH_TOKEN_SECRET
 
   const tokenValidation = validateToken({ token, secret })
-  console.log(tokenValidation)
 
   if (!tokenValidation) {
     return res.sendStatus(400)
@@ -213,9 +199,6 @@ const resetPassword = async (req, res) => {
     return res.sendStatus(404)
   }
 
-  // if (user.status === STATUS.ACTIVE) {
-  //   return res.sendStatus(200)
-  // }
   const salt = bcrypt.genSaltSync(10)
   const passwordHash = bcrypt.hashSync(password, salt)
 

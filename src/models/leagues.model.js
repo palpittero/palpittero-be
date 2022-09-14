@@ -30,7 +30,8 @@ const fetchAll = async ({ isPrivate, ownerId, ownersIds } = {}) => {
       'usersLeagues.owner AS usersLeaguesOwner',
       'usersLeagues.status AS usersLeaguesStatus',
       'usersLeagues.leagueId AS usersLeaguesLeagueId',
-      'users.name AS userName'
+      'users.name AS userName',
+      'users.email AS userEmail'
     ])
     .leftJoin('usersLeagues', 'usersLeagues.leagueId', `${TABLE_NAME}.id`)
     .leftJoin('users', 'users.id', `usersLeagues.userId`)
@@ -102,6 +103,7 @@ const appendEntities = (rows) =>
         'usersLeaguesStatus',
         'usersLeaguesLeagueId',
         'userName',
+        'userEmail',
         'userId'
       ]
 
@@ -111,14 +113,13 @@ const appendEntities = (rows) =>
         status: row.usersLeaguesStatus,
         leagueId: row.usersLeaguesLeagueId,
         id: row.usersLeaguesUserId,
-        name: row.userName
+        name: row.userName,
+        email: row.userEmail
       }
 
       const users = row.usersLeaguesLeagueId
         ? [...(result[row.id]?.users || []), user]
         : result[row.id]?.users || []
-
-      // console.log({ users })
 
       return {
         ...result,

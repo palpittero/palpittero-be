@@ -93,9 +93,48 @@ const emailPasswordReset = ({ name, token }) => {
   }
 }
 
+const emailLeagueUserInvitation = ({
+  name,
+  league,
+  owner,
+  visibility,
+  token
+}) => {
+  const subject = 'Você foi convidado a participar de uma liga no Palpittero'
+
+  const html = `<p>Olá ${name},</p>
+
+  <p>Você receveu um convite de <b>${owner}</b> para partipar da sua liga ${visibility} <b>${league}</b>.</p>
+
+  <p>Clique no link abaixo para aceitar o convite.</p>
+
+  <p>
+    <a href="${getAppRoute(process.env.EMAIL_ACCEPT_LEAGUE_INVITATION, {
+      token,
+      league,
+      visibility,
+      owner
+    })}" target="_blank">
+      Aceitar Convite
+    <a>
+  </p>
+
+  <p>Caso não deseje participar desta liga, ignore este e-mail.</p>
+  <p>O convite expira em 24 horas.</p>
+  <br />
+
+  Palpittero`
+
+  return {
+    subject,
+    html
+  }
+}
+
 export default {
   [EMAILS_TYPES.ACTIVATION]: activation,
   [EMAILS_TYPES.EMAIL_CHANGE]: emailChange,
   [EMAILS_TYPES.EMAIL_ACTIVATION]: emailActivation,
-  [EMAILS_TYPES.PASSWORD_RESET]: emailPasswordReset
+  [EMAILS_TYPES.PASSWORD_RESET]: emailPasswordReset,
+  [EMAILS_TYPES.PRIVATE_LEAGUE_USER_INVITATION]: emailLeagueUserInvitation
 }

@@ -37,9 +37,31 @@ const sendPasswordResetEmail = ({ name, email, token }) => {
   return sendEmail({ to: email, subject, html })
 }
 
+const sendLeagueInvitationEmail = ({
+  name,
+  email,
+  league,
+  owner,
+  visibility,
+  token
+}) => {
+  const { subject, html } = emailStrategy[
+    EMAILS_TYPES.PRIVATE_LEAGUE_USER_INVITATION
+  ]({
+    name,
+    league,
+    owner,
+    visibility,
+    token
+  })
+
+  return sendEmail({ to: email, subject, html })
+}
+
 export {
   sendAccountCreationEmail,
   sendEmailChangeEmail,
   sendEmailActivationEmail,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  sendLeagueInvitationEmail
 }

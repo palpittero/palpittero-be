@@ -1,10 +1,14 @@
 import { Router } from 'express'
-import { inviteUsers, approveUser, deleteUser } from './usersLeagues.controller'
+import {
+  inviteUsers,
+  acceptInvitation,
+  deleteUser
+} from './usersLeagues.controller'
 
 const router = Router()
 
 router.post('/invite', inviteUsers)
-router.post('/approve', approveUser)
+router.post('/acceptInvitation/:token', acceptInvitation)
 router.delete('/:leagueId/:userId', deleteUser)
 
 export default router
