@@ -6,6 +6,7 @@ import omit from 'lodash/fp/omit'
 import omitBy from 'lodash/fp/omitBy'
 import isNil from 'lodash/fp/isNil'
 import values from 'lodash/fp/values'
+import uniqBy from 'lodash/fp/uniqBy'
 import { STATUS } from '../shared/constants'
 
 const TABLE_NAME = 'championships'
@@ -19,7 +20,11 @@ const fetchAll = async () => {
       'teams.id AS teamId',
       'teams.name AS teamName',
       'teams.badge AS teamBadge',
-      'teamsChampionships.championshipId'
+      'teamsChampionships.championshipId',
+      'rounds.id AS roundId',
+      'rounds.code AS roundCode',
+      'rounds.name AS roundName',
+      'rounds.type AS roundType'
     ])
     .leftJoin(
       'teamsChampionships',
@@ -27,6 +32,7 @@ const fetchAll = async () => {
       `${TABLE_NAME}.id`
     )
     .leftJoin('teams', 'teams.id', `teamsChampionships.teamId`)
+    .leftJoin('rounds', 'rounds.championshipId', `${TABLE_NAME}.id`)
     .where({
       [`${TABLE_NAME}.status`]: STATUS.ACTIVE
     })
@@ -81,6 +87,7 @@ const appendEntities = (rows) =>
   pipe(
     reduce((result, row) => {
       const TEAMS_FIELDS = ['teamId', 'teamName', 'teamBadge', 'championshipId']
+      const ROUNDS_FIELDS = ['roundId', 'roundCode', 'roundName', 'roundType']
 
       const team = {
         id: row.teamId,
@@ -88,15 +95,27 @@ const appendEntities = (rows) =>
         badge: row.teamBadge
       }
 
+      const round = {
+        id: row.roundId,
+        code: row.roundCode,
+        name: row.roundName,
+        type: row.roundType
+      }
+
       const teams = row.championshipId
         ? [...(result[row.id]?.teams || []), team]
         : result[row.id]?.teams || []
 
+      const rounds = row.roundType
+        ? [...(result[row.id]?.rounds || []), round]
+        : result[row.id]?.rounds || []
+
       return {
         ...result,
         [row.id]: {
-          ...omit(TEAMS_FIELDS, row),
-          teams
+          ...omit([...TEAMS_FIELDS, ...ROUNDS_FIELDS], row),
+          teams: uniqBy('id', teams),
+          rounds: uniqBy('id', rounds)
         }
       }
     }, {}),

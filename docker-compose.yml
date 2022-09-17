@@ -12,7 +12,7 @@ services:
       - docker-service
     volumes:
       - .docker/init-database.sql:/docker-entrypoint-initdb.d/init-database.sql
-      - maria-data:/data/db
+      - .docker/data:/data/db
 
 networks:
   docker-service:

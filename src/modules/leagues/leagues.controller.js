@@ -150,7 +150,7 @@ const deleteLeague = async (req, res) => {
 const deleteLeagues = async (req, res) => {
   const { ids } = req.body
 
-  await leaguesModel.deleteMany({ values: ids })
+  await leaguesModel.batchDelete({ values: ids })
 
   return res.sendStatus(204)
 }

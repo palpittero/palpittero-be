@@ -9,6 +9,7 @@ import {
 } from '../teamsChampionships/teamsChampionships.helpers'
 import minBy from 'lodash/fp/minBy'
 import maxBy from 'lodash/fp/maxBy'
+import { CHAMPIONSHIPS_ROUNDS } from './championships.constants'
 
 const getChampionships = async (req, res) => {
   const { query } = req
@@ -34,7 +35,7 @@ const getChampionship = async (req, res) => {
 }
 
 const createChampionship = async (req, res) => {
-  const { name, year, teams, rounds } = req.body
+  const { name, year, teams, rounds, roundsType } = req.body
 
   const [id] = await championshipsModel.insert({
     name,
@@ -43,7 +44,8 @@ const createChampionship = async (req, res) => {
 
   const championshipRounds = appendChampionshipRounds({
     championshipId: id,
-    rounds
+    rounds,
+    roundsType
   })
 
   await roundsModel.replace(championshipRounds)
@@ -60,7 +62,7 @@ const createChampionship = async (req, res) => {
 
 const updateChampionship = async (req, res) => {
   const id = parseInt(req.params.id)
-  const { name, year, teams, status } = req.body
+  const { name, year, teams, rounds, status } = req.body
 
   const championship = await championshipsModel.fetchById(id)
 
@@ -74,6 +76,18 @@ const updateChampionship = async (req, res) => {
     year,
     status
   })
+
+  await roundsModel.batchDelete({ columnName: 'championshipId', values: [id] })
+
+  const championshipRounds = appendChampionshipRounds({
+    championshipId: id,
+    rounds,
+    roundsType: CHAMPIONSHIPS_ROUNDS.DETAILED
+  })
+
+  await roundsModel.batchInsert(championshipRounds)
+
+  // await roundsModel.batchInsert(championshipRounds)
 
   const teamsChampionships = appendTeamsChampionships({
     championshipId: id,
@@ -102,8 +116,8 @@ const deleteChampionship = async (req, res) => {
 const deleteChampionships = async (req, res) => {
   const { ids } = req.body
 
-  await championshipsModel.deleteMany({ values: ids })
-  await teamsChampionshipsModel.deleteMany({
+  await championshipsModel.batchDelete({ values: ids })
+  await teamsChampionshipsModel.batchDelete({
     columnName: 'championshipId',
     values: ids
   })

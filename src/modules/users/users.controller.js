@@ -71,7 +71,7 @@ const deleteUser = async (req, res) => {
   const { id } = req.params
 
   await usersLeaguesModel.unlinkLeagues([id])
-  await usersLeaguesModel.deleteMany({ columnName: 'userId', values: [id] })
+  await usersLeaguesModel.batchDelete({ columnName: 'userId', values: [id] })
   await usersModel.delete({ id })
 
   return res.sendStatus(204)
@@ -81,8 +81,8 @@ const deleteUsers = async (req, res) => {
   const { ids } = req.body
 
   await usersLeaguesModel.unlinkLeagues(ids)
-  await usersLeaguesModel.deleteMany({ columnName: 'userId', values: ids })
-  await usersModel.deleteMany({ values: ids })
+  await usersLeaguesModel.batchDelete({ columnName: 'userId', values: ids })
+  await usersModel.batchDelete({ values: ids })
 
   return res.sendStatus(204)
 }

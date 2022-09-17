@@ -21,6 +21,13 @@ exports.seed = async function (knex) {
       championshipId: 1, // Copa do Mundo,
       name: 'Rodada 3 - Oitavas de Final',
       type: 'penalties'
+    },
+    {
+      id: 4,
+      code: 4,
+      championshipId: 2, // Campeonato Brasileiro,
+      name: 'Rodada 1',
+      type: 'regularTime'
     }
   ])
 }

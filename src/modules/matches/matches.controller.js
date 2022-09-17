@@ -104,8 +104,8 @@ const deleteMatches = async (req, res) => {
   //   return res.sendStatus(404)
   // }
 
-  await matchesModel.deleteMany({ values: ids })
-  // await guessesModel.deleteMany({ columnName: 'matchId', values: ids }, false)
+  await matchesModel.batchDelete({ values: ids })
+  // await guessesModel.batchDelete({ columnName: 'matchId', values: ids }, false)
   return res.sendStatus(204)
 }
 

@@ -78,8 +78,8 @@ const deleteTeams = async (req, res) => {
   // return res.sendStatus(404)
   // }
 
-  await teamsModel.deleteMany({ values: ids })
-  // await teamsChampionshipsModel.deleteMany({
+  await teamsModel.batchDelete({ values: ids })
+  // await teamsChampionshipsModel.batchDelete({
   //   columnName: 'teamId',
   //   values: ids
   // })

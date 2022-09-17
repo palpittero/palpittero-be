@@ -7,12 +7,9 @@
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon --experimental-modules --es-module-specifier-resolution=node ./src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "db:create": "touch ./data/dev.sqlite3",
     "db:reset": "npm run db:drop; npm run db:create && npm run db:migrate && npm run db:seed",
-    "db:drop": "test -f \"./data/dev.sqlite3\" && rm ./data/dev.sqlite3",
     "db:migrate": "knex migrate:latest",
     "db:seed": "knex seed:run",
-    "db:generate": "npm run db:create && npm run db:migrate && npm run db:seed",
     "migrate:make": "knex migrate:make",
     "seed:make": "knex seed:make",
     "lint": "eslint --fix"
