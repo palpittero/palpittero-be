@@ -1,4 +1,4 @@
-import knex from '../database'
+import knex from '../config/database'
 import omitBy from 'lodash/fp/omitBy'
 import isNil from 'lodash/fp/isNil'
 import baseModel from './base.model'

@@ -1,4 +1,4 @@
-import knex from '../database'
+import knex from '../config/database'
 import baseModel from './base.model'
 import pipe from 'lodash/fp/pipe'
 import reduce from 'lodash/fp/reduce'

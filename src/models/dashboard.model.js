@@ -1,4 +1,4 @@
-import knex from '../database'
+import knex from '../config/database'
 
 const fetchGeneralStats = async () =>
   await knex

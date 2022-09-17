@@ -1,6 +1,6 @@
+import countriesModel from '../../models/countries.model'
 import teamsModel from '../../models/teams.model'
-import teamsChampionshipsModel from '../../models/teamsChampionships.model'
-import matchesModel from '../../models/matches.model'
+import { safeJSONParse } from '../../utils/misc'
 
 const getTeams = async (req, res) => {
   const { query } = req
@@ -26,11 +26,26 @@ const getTeam = async (req, res) => {
 }
 
 const createTeam = async (req, res) => {
-  const { name, badge } = req.body
+  const {
+    name,
+    type,
+    country: rawCountry,
+    region,
+    nationalDivision,
+    status
+  } = req.body
+
+  const badge = req.file?.path ? req.file?.path : req.body.badge
+  const country = safeJSONParse(rawCountry)
 
   const [id] = await teamsModel.insert({
     name,
-    badge
+    badge,
+    type,
+    countryId: country.id,
+    region,
+    nationalDivision,
+    status
   })
 
   res.status(201).json({ data: id })
@@ -38,7 +53,14 @@ const createTeam = async (req, res) => {
 
 const updateTeam = async (req, res) => {
   const id = parseInt(req.params.id)
-  const { name, badge, status } = req.body
+  const {
+    name,
+    type,
+    country: rawCountry,
+    region,
+    nationalDivision,
+    status
+  } = req.body
 
   const team = await teamsModel.fetchById(id)
 
@@ -46,10 +68,28 @@ const updateTeam = async (req, res) => {
     return res.sendStatus(404)
   }
 
+  const badge = req.file?.path ? req.file?.path : req.body.badge
+  const country = safeJSONParse(rawCountry)
+
+  console.log({
+    id,
+    name,
+    badge,
+    type,
+    countryId: country.id,
+    region,
+    nationalDivision,
+    status
+  })
+
   await teamsModel.update({
     id,
     name,
     badge,
+    type,
+    countryId: country.id,
+    region,
+    nationalDivision,
     status
   })
 
@@ -72,20 +112,37 @@ const deleteTeam = async (req, res) => {
 
 const deleteTeams = async (req, res) => {
   const { ids } = req.body
-  // const team = await teamsModel.fetchById(id)
-
-  // if (!team) {
-  // return res.sendStatus(404)
-  // }
 
   await teamsModel.batchDelete({ values: ids })
-  // await teamsChampionshipsModel.batchDelete({
-  //   columnName: 'teamId',
-  //   values: ids
-  // })
-  // await matchesModel.deleteByTeams(ids)
 
   return res.sendStatus(204)
 }
 
-export { getTeams, getTeam, createTeam, updateTeam, deleteTeam, deleteTeams }
+const getCountries = async (req, res) => {
+  // const { data } = await axios(process.env.COUNTRIES_API_URL)
+  // const countries = data.map(
+  //   ({ fifa, cioc, cca2, cca3, translations, flags }) => ({
+  //     fifa,
+  //     cioc,
+  //     cca2,
+  //     cca3,
+  //     name: translations.por.common,
+  //     flag: flags.png
+  //   })
+  // )
+  const countries = await countriesModel.fetchAll()
+
+  res.json({
+    data: countries
+  })
+}
+
+export {
+  getTeams,
+  getTeam,
+  createTeam,
+  updateTeam,
+  deleteTeam,
+  deleteTeams,
+  getCountries
+}

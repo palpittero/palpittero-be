@@ -5,30 +5,26 @@ exports.seed = async function (knex) {
       id: 1,
       name: 'Brasil',
       badge: 'https://cdn.countryflags.com/thumbs/brazil/flag-square-250.png',
-      type: 'nationalTeam',
-      country: 'world'
+      type: 'nationalTeam'
     },
     {
       id: 2,
       name: 'Argentina',
       badge:
         'https://cdn.countryflags.com/thumbs/argentina/flag-square-250.png',
-      type: 'nationalTeam',
-      country: 'world'
+      type: 'nationalTeam'
     },
     {
       id: 3,
       name: 'Itália',
       badge: 'https://cdn.countryflags.com/thumbs/italy/flag-square-250.png',
-      type: 'nationalTeam',
-      country: 'world'
+      type: 'nationalTeam'
     },
     {
       id: 4,
       name: 'Alemanha',
       badge: 'https://cdn.countryflags.com/thumbs/germany/flag-square-250.png',
-      type: 'nationalTeam',
-      country: 'world'
+      type: 'nationalTeam'
     },
     {
       id: 5,
@@ -36,7 +32,7 @@ exports.seed = async function (knex) {
       badge:
         'https://content.sportslogos.net/logos/130/4017/full/643_-real_madrid-primary-.gif',
       type: 'club',
-      country: 'Spain',
+      countryId: 149, // Espanha
       nationalDivision: 1
     },
     {
@@ -45,7 +41,7 @@ exports.seed = async function (knex) {
       badge:
         'https://content.sportslogos.net/logos/130/4016/full/954_-fc_barcelona-primary-.gif',
       type: 'club',
-      country: 'Spain',
+      countryId: 149, // Espanha
       nationalDivision: 1
     },
     {
@@ -54,7 +50,7 @@ exports.seed = async function (knex) {
       badge:
         'https://content.sportslogos.net/logos/128/3992/full/131_-ac_milan-primary-.gif',
       type: 'club',
-      country: 'Italy',
+      countryId: 50, // Itália
       nationalDivision: 1
     },
     {
@@ -63,7 +59,7 @@ exports.seed = async function (knex) {
       badge:
         'https://content.sportslogos.net/logos/128/3997/full/4488__juventus-primary-2017.png',
       type: 'club',
-      country: 'Italy',
+      countryId: 50, // Itália
       nationalDivision: 1
     },
     {
@@ -72,7 +68,7 @@ exports.seed = async function (knex) {
       badge:
         'https://content.sportslogos.net/logos/132/4069/full/376_-bayern_munich-primary-.gif',
       type: 'club',
-      country: 'Germany',
+      countryId: 83, // Alemanha
       nationalDivision: 1
     },
     {
@@ -81,7 +77,7 @@ exports.seed = async function (knex) {
       badge:
         'https://content.sportslogos.net/logos/132/4072/full/789_-borussia_dortmund-primary-.gif',
       type: 'club',
-      country: 'Germany',
+      countryId: 50, // Alemanha
       nationalDivision: 1
     },
     {
@@ -90,7 +86,7 @@ exports.seed = async function (knex) {
       badge:
         'https://content.sportslogos.net/logos/143/4455/full/738_-clube_de_regatas_do_flamengo-primary-.gif',
       type: 'club',
-      country: 'Brazil',
+      countryId: 21, // Brasil
       region: 'RJ',
       nationalDivision: 1
     },
@@ -100,7 +96,7 @@ exports.seed = async function (knex) {
       badge:
         'https://content.sportslogos.net/logos/143/4456/full/354_-fluminense_football_club-primary-.gif',
       type: 'club',
-      country: 'Brazil',
+      countryId: 21, // Brasil
       region: 'RJ',
       nationalDivision: 1
     }

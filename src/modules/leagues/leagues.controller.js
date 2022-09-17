@@ -8,6 +8,7 @@ import leaguesChampionshipsModel from '../../models/leaguesChampionships.model'
 import championshipsModel from '../../models/championships.model'
 import { sendLeagueInvitationEmail } from '../email/email.service'
 import { EMAIL_LEAGUE_VISIBILITY } from '../email/email.constants'
+import { safeJSONParse } from '../../utils/misc'
 
 const getLeagues = async (req, res) => {
   const { private: isPrivate, ownerId } = req.query
@@ -34,14 +35,17 @@ const getLeague = async (req, res) => {
 const createLeague = async (req, res) => {
   const {
     name,
-    badge,
     pointsStrategy,
     private: isPrivate,
-    users,
-    championships,
+    users: rawUsers,
+    championships: rawChampionships,
     status
   } = req.body
 
+  const users = safeJSONParse(rawUsers)
+  const championships = safeJSONParse(rawChampionships)
+
+  const badge = req.file?.path ? req.file?.path : req.body.badge
   const [leagueId] = await leaguesModel.insert({
     name,
     badge,
@@ -94,11 +98,10 @@ const updateLeague = async (req, res) => {
   const leagueId = parseInt(req.params.id)
   const {
     name,
-    badge,
     pointsStrategy,
     private: isPrivate,
-    users,
-    championships,
+    users: rawUsers,
+    championships: rawChampionships,
     status
   } = req.body
 
@@ -107,6 +110,10 @@ const updateLeague = async (req, res) => {
   if (!league) {
     return res.sendStatus(404)
   }
+
+  const users = safeJSONParse(rawUsers)
+  const championships = safeJSONParse(rawChampionships)
+  const badge = req.file?.path ? req.file?.path : req.body.badge
 
   await leaguesModel.update({
     id: leagueId,

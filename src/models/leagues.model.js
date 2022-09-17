@@ -1,4 +1,4 @@
-import knex from '../database'
+import knex from '../config/database'
 import baseModel from './base.model'
 import omit from 'lodash/fp/omit'
 import pipe from 'lodash/fp/pipe'
@@ -55,8 +55,6 @@ const fetchAll = async ({ isPrivate, ownerId, ownersIds } = {}) => {
       )} IN (${ownersIds.join(',')})`
     )
   }
-
-  // query.groupBy(`${TABLE_NAME}.id`)
 
   return appendEntities(await query)
 }

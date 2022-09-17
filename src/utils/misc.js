@@ -7,4 +7,12 @@ const getAppRoute = (resource = '', params) => {
   return `${url}?${queryString}`
 }
 
-export { getApiURL, getAppRoute }
+const safeJSONParse = (value) => {
+  try {
+    return JSON.parse(value)
+  } catch (error) {
+    return value
+  }
+}
+
+export { getApiURL, getAppRoute, safeJSONParse }

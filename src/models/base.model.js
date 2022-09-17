@@ -1,5 +1,5 @@
 import forEach from 'lodash/fp/forEach'
-import knex from '../database'
+import knex from '../config/database'
 import { STATUS } from '../shared/constants'
 
 export default (tableName, columns = []) => {
