@@ -1,5 +1,3 @@
-const getApiURL = (resource = '') => `${process.env.API_URL}${resource}`
-
 const getAppRoute = (resource = '', params) => {
   const url = `${process.env.APP_URL}${resource}`
   const queryString = new URLSearchParams(params).toString()
@@ -15,4 +13,4 @@ const safeJSONParse = (value) => {
   }
 }
 
-export { getApiURL, getAppRoute, safeJSONParse }
+export { getAppRoute, safeJSONParse }
