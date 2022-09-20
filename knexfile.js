@@ -1,5 +1,6 @@
 import dotenv from 'dotenv'
-dotenv.config()
+dotenv.config({ path: `.env.${process.env.NODE_ENV}` })
+console.log({ path: `.env.${process.env.NODE_ENV}` })
 
 export default {
   memory: {
@@ -17,7 +18,27 @@ export default {
     useNullAsDefault: true
   },
   development: {
-    client: 'mysql',
+    client: 'mysql2',
+    debug: true,
+    connection: {
+      host: process.env.DB_HOST,
+      user: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_DATABASE
+    },
+    pool: {
+      min: 2,
+      max: 10
+    },
+    seeds: {
+      directory: './data/seeds'
+    },
+    migrations: {
+      tableName: 'knex_migrations'
+    }
+  },
+  staging: {
+    client: 'mysql2',
     debug: true,
     connection: {
       host: process.env.DB_HOST,
@@ -37,7 +58,7 @@ export default {
     }
   },
   production: {
-    client: 'mysql',
+    client: 'mysql2',
     connection: {
       host: process.env.DB_HOST,
       user: process.env.DB_USERNAME,
