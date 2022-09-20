@@ -8,7 +8,8 @@ const database = knex(knexfile[NODE_ENV])
 if (NODE_ENV === 'memory') {
   await database.raw('PRAGMA foreign_keys = ON')
 } else {
-  await database.raw(`SET time_zone='America/Sao_Paulo';`)
+  // await database.raw(`SET time_zone='America/Sao_Paulo';`)
+  await database.raw(`SET time_zone='Brasil/East';`)
 }
 
 export default database
