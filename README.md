@@ -2,29 +2,25 @@
 
 ### Requirements
 - NodeJS v14+ ([download](https://nodejs.org/en/download/))
-- SQLite 3 ([intallation](https://github.com/TryGhost/node-sqlite3))
+- Docker ([download](https://www.docker.com/products/docker-desktop/))
 
-**After installing NodeJS, SQLite 3 can be globally installed using NPM** _(this is required for creating the initial test database)_
-
-```
-npm install -g sqlite3
-``` 
+**I'm suggesting installing Docker Desktop because of its intuitive interface**
 
 ### Installation
 
 1. Clone the repo to a directory
 ```
-git clone https://github.com/palpittero/palpitter-be
+git clone https://github.com/palpittero/palpittero-be
 ```
 
-2. Enter the `backend` directory and run the installation command
+2. Enter the `palpittero-be` directory and install the dependencies
 ```
-cd backend && npm install
+npm install
 ```
 
-3. Execute the command to create the database file
+3. Execute the command to start the database container
 ```
-npm run db:create
+docker-compose up -d
 ```
 
 4. Execute the command to create the database structure
@@ -37,28 +33,14 @@ npm run db:migrate
 npm run db:seed
 ```
 
-6. Run the application
+6. Create a file named `.env.development` on the root directory of the project and feed it the env variables (available on the online project documentation)
+
+7. Run the application
 ```
 npm run dev
 ```
 
-### Other database commands
-
-1. Drop current file
-```
-npm run db:drop
-```
-
-_It will throw an error if the database file does not exist_
-
-2. Reset database (remove file, create new file, create structure and seed)
-```
-npm run db:reset
-```
-
-_It will throw an error if the database file does not exist_
-
-**By default, the application will run on `http://localhost:3000`**
+**By default, the API will run on `http://localhost:3000/api`**
 
 ### Postman Collection
 
