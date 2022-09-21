@@ -6,10 +6,14 @@
   "type": "module",
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon --experimental-modules --es-module-specifier-resolution=node ./src/index.js",
+    "staging": "cross-env NODE_ENV=staging node --experimental-modules --es-module-specifier-resolution=node ./src/index.js",
+    "production": "cross-env NODE_ENV=production nodemon --experimental-modules --es-module-specifier-resolution=node ./src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "db:reset": "npm run db:drop; npm run db:create && npm run db:migrate && npm run db:seed",
-    "db:migrate": "cross-env NODE_ENV=staging ./node_modules/knex/bin/cli.js migrate:latest --knexfile knexfile.js",
-    "db:seed": "cross-env NODE_ENV=staging ./node_modules/knex/bin/cli.js seed:run --knexfile knexfile.js",
+    "db:migrate": "cross-env NODE_ENV=development ./node_modules/knex/bin/cli.js migrate:latest --knexfile knexfile.js",
+    "db:seed": "cross-env NODE_ENV=development ./node_modules/knex/bin/cli.js seed:run --knexfile knexfile.js",
+    "db:migrate:staging": "cross-env NODE_ENV=staging ./node_modules/knex/bin/cli.js migrate:latest --knexfile knexfile.js",
+    "db:seed:staging": "cross-env NODE_ENV=staging ./node_modules/knex/bin/cli.js seed:run --knexfile knexfile.js",
+    "db:migrate:production": "cross-env NODE_ENV=production ./node_modules/knex/bin/cli.js migrate:latest --knexfile knexfile.js",
     "migrate:make": "knex migrate:make",
     "seed:make": "knex seed:make",
     "lint": "eslint --fix"
