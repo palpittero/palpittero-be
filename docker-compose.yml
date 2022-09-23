@@ -1,23 +1,36 @@
 version: "3"
 
 services:
-  mariadb:
+  nodejs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    container_name: palpittero-be-nodejs
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/usr/app/api
+      - '/usr/app/api/node_modules'
+    stdin_open: true
+    tty: true
+    networks:
+      - docker-service
+    depends_on:
+      - mysql
+  mysql:
     image: mysql:latest
-    container_name: docker-mysql
+    restart: unless-stopped
+    container_name: palpittero-be-mysql
     ports:
       - "3306:3306"
-    environment: 
-      MYSQL_ROOT_PASSWORD: "AVqwCLvea4EsDWt4"
+    environment:
+      MYSQL_ROOT_PASSWORD: AVqwCLvea4EsDWt4
     networks:
       - docker-service
     volumes:
       - .docker/init-database.sql:/docker-entrypoint-initdb.d/init-database.sql
-      - .docker/data:/data/db
 
 networks:
   docker-service:
     driver: bridge
-
-volumes:
-  maria-data:
-    driver: local

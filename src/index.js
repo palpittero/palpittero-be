@@ -11,7 +11,7 @@ app.use(bodyParser.json())
 app.use(cors())
 app.use('/api', router)
 
-const port = process.env.PORT || '3000'
+const port = process.env.API_PORT || '3000'
 
 app.listen(port, function () {
   console.log(`Listening on port ${port}`)
