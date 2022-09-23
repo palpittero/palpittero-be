@@ -3,7 +3,7 @@ import knexfile from '../../knexfile'
 
 const { NODE_ENV } = process.env
 
-// console.log({ database: knexfile[NODE_ENV] })
+console.log({ database: knexfile[NODE_ENV] })
 const database = knex(knexfile[NODE_ENV])
 
 if (NODE_ENV === 'memory') {
