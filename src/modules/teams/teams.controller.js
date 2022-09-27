@@ -71,17 +71,6 @@ const updateTeam = async (req, res) => {
   const badge = req.file?.path ? req.file?.path : req.body.badge
   const country = safeJSONParse(rawCountry)
 
-  console.log({
-    id,
-    name,
-    badge,
-    type,
-    countryId: country.id,
-    region,
-    nationalDivision,
-    status
-  })
-
   await teamsModel.update({
     id,
     name,

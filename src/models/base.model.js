@@ -45,7 +45,6 @@ export default (tableName, columns = []) => {
   }
 
   const batchUpdate = (rows) => {
-    console.log('batch update', rows)
     return knex.transaction((trx) => {
       const queries = rows.map(({ id, ...row }) =>
         knex(tableName).update(row).where({ id }).transacting(trx)
@@ -56,8 +55,6 @@ export default (tableName, columns = []) => {
   }
 
   const batchInsert = (rows) => {
-    console.log('batch update', rows)
-
     return knex.transaction((trx) => {
       const queries = rows.map((row) =>
         knex(tableName).insert(row).transacting(trx)
