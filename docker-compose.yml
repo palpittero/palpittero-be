@@ -1,23 +1,6 @@
 version: "3"
 
 services:
-  nodejs:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    container_name: palpittero-be-nodejs
-    ports:
-      - "3000:3000"
-    volumes:
-      - .:/usr/app/api
-      - '/usr/app/api/node_modules'
-    stdin_open: true
-    tty: true
-    networks:
-      - docker-service
-    depends_on:
-      - mysql
   mysql:
     image: mysql:latest
     restart: unless-stopped
