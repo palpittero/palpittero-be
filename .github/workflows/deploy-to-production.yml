@@ -34,5 +34,5 @@ jobs:
             cd /home/app/palpittero/palpittero-be/production
             npm install
             cp /home/app/palpittero/palpittero-be/.env.production /home/app/palpittero/palpittero-be/production/.env.production
-            npm run db:migrate
+            npm run db:migrate:production
             pm2 restart palpittero-api-production
