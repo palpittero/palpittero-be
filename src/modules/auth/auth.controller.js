@@ -93,6 +93,7 @@ const signUp = async (req, res) => {
     password,
     passwordConfirmation,
     phone,
+    status = STATUS.INACTIVE,
     role = USER_ROLES.PLAYER
   } = req.body
 
@@ -120,10 +121,12 @@ const signUp = async (req, res) => {
     token,
     role,
     phone,
-    status: STATUS.INACTIVE
+    status
   })
 
-  await sendAccountCreationEmail({ name, email, token })
+  if (!status) {
+    await sendAccountCreationEmail({ name, email, token })
+  }
 
   return res.sendStatus(201)
 }
