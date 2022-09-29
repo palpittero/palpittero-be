@@ -9,6 +9,7 @@ import {
 } from '../teamsChampionships/teamsChampionships.helpers'
 import minBy from 'lodash/fp/minBy'
 import maxBy from 'lodash/fp/maxBy'
+import difference from 'lodash/fp/difference'
 import { CHAMPIONSHIPS_ROUNDS } from './championships.constants'
 
 const getChampionships = async (req, res) => {
@@ -77,7 +78,14 @@ const updateChampionship = async (req, res) => {
     status
   })
 
-  await roundsModel.batchDelete({ columnName: 'championshipId', values: [id] })
+  const currentRounds = await roundsModel.fetchByChampionship({
+    championshipId: id
+  })
+  const currentRoundsIds = currentRounds.map(({ id }) => id)
+  const roundsIds = rounds.filter(({ id }) => id).map(({ id }) => id)
+  const removedRoundsIds = difference(currentRoundsIds, roundsIds)
+
+  await roundsModel.batchDelete({ columnName: 'id', values: removedRoundsIds })
 
   const championshipRounds = appendChampionshipRounds({
     championshipId: id,
@@ -85,7 +93,7 @@ const updateChampionship = async (req, res) => {
     roundsType: CHAMPIONSHIPS_ROUNDS.DETAILED
   })
 
-  await roundsModel.batchInsert(championshipRounds)
+  await roundsModel.replace(championshipRounds)
 
   const teamsChampionships = appendTeamsChampionships({
     championshipId: id,
