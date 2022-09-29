@@ -1,4 +1,4 @@
-import knex from '../config/database'
+import knex, { DB_DEFAULT_DATE_FN } from '../config/database'
 import baseModel from './base.model'
 import omitBy from 'lodash/fp/omitBy'
 import isNil from 'lodash/fp/isNil'
@@ -27,13 +27,13 @@ const columns = [
 
 const MATCH_STATUS_QUERY = `
   IF(
-    NOW() > DATE_ADD(date, INTERVAL 240 MINUTE),
+    ${DB_DEFAULT_DATE_FN} > DATE_ADD(date, INTERVAL 240 MINUTE),
     "finished",
     IF(
-      NOW() < date AND DATE_ADD(NOW(), INTERVAL 60 MINUTE) > date,
+      ${DB_DEFAULT_DATE_FN} < date AND DATE_ADD(${DB_DEFAULT_DATE_FN}, INTERVAL 60 MINUTE) > date,
       "preparation",
       IF (
-        NOW() < DATE_ADD(date, INTERVAL 240 MINUTE) AND NOW() > date,
+        ${DB_DEFAULT_DATE_FN} < DATE_ADD(date, INTERVAL 240 MINUTE) AND ${DB_DEFAULT_DATE_FN} > date,
         "in_progress",
         "scheduled"
       )
