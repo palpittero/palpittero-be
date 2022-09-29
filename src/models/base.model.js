@@ -1,3 +1,4 @@
+import isArray from 'lodash/fp/isArray'
 import forEach from 'lodash/fp/forEach'
 import knex from '../config/database'
 import { STATUS } from '../shared/constants'
@@ -8,7 +9,11 @@ export default (tableName, columns = []) => {
 
     forEach.convert({ cap: false })((value, column) => {
       if (columns.includes(column)) {
-        query.whereLike(column, value)
+        if (isArray(value)) {
+          query.whereIn(column, value)
+        } else {
+          query.whereLike(column, value)
+        }
       }
     }, where)
 
