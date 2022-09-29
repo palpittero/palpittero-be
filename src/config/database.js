@@ -3,7 +3,7 @@ import knexfile from '../../knexfile'
 
 const { NODE_ENV } = process.env
 
-console.log({ database: knexfile[NODE_ENV] })
+console.log({ NODE_ENV })
 const database = knex(knexfile[NODE_ENV])
 
 if (NODE_ENV === 'memory') {
@@ -14,3 +14,6 @@ if (NODE_ENV === 'memory') {
 }
 
 export default database
+
+export const DB_DEFAULT_DATE_FN =
+  process.env.NODE_ENV === 'development' ? 'NOW()' : 'UTC_TIMESTAMP()'

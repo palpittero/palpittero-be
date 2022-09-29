@@ -4,6 +4,7 @@ import pick from 'lodash/fp/pick'
 import omit from 'lodash/fp/omit'
 import pickBy from 'lodash/fp/pickBy'
 import identity from 'lodash/fp/identity'
+import { DB_DEFAULT_DATE_FN } from '../config/database'
 
 const TABLE_NAME = 'guesses'
 
@@ -24,13 +25,13 @@ export const TABLE_FIELDS = [
 
 const MATCH_STATUS_QUERY = `
   IF(
-    NOW() > DATE_ADD(date, INTERVAL 240 MINUTE),
+    ${DB_DEFAULT_DATE_FN} > DATE_ADD(date, INTERVAL 240 MINUTE),
     "finished",
     IF(
-      NOW() < date AND DATE_ADD(NOW(), INTERVAL 60 MINUTE) > date,
+      ${DB_DEFAULT_DATE_FN} < date AND DATE_ADD(${DB_DEFAULT_DATE_FN}, INTERVAL 60 MINUTE) > date,
       "preparation",
       IF (
-        NOW() < DATE_ADD(date, INTERVAL 240 MINUTE) AND NOW() > date,
+        ${DB_DEFAULT_DATE_FN} < DATE_ADD(date, INTERVAL 240 MINUTE) AND ${DB_DEFAULT_DATE_FN} > date,
         "in_progress",
         "scheduled"
       )

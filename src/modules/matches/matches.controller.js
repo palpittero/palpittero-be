@@ -1,4 +1,3 @@
-import guessesModel from '../../models/guesses.model'
 import matchesModel from '../../models/matches.model'
 
 const getMatches = async (req, res) => {
