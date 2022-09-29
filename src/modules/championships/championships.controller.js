@@ -87,14 +87,17 @@ const updateChampionship = async (req, res) => {
 
   await roundsModel.batchInsert(championshipRounds)
 
-  // await roundsModel.batchInsert(championshipRounds)
-
   const teamsChampionships = appendTeamsChampionships({
     championshipId: id,
     teams
   })
 
-  await teamsChampionshipsModel.replace(teamsChampionships)
+  await teamsChampionshipsModel.batchDelete({
+    columnName: 'championshipId',
+    values: [id]
+  })
+
+  await teamsChampionshipsModel.batchInsert(teamsChampionships)
 
   return res.json({
     data: id
