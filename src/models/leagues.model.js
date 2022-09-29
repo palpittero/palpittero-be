@@ -21,7 +21,13 @@ const columns = [
   'updatedAt'
 ]
 
-const fetchAll = async ({ isPrivate, ownerId, ownersIds } = {}) => {
+const fetchAll = async ({
+  isPrivate,
+  userId,
+  ownerId,
+  ownersIds,
+  status
+} = {}) => {
   const query = knex(TABLE_NAME)
     .select([
       `${TABLE_NAME}.*`,
@@ -37,7 +43,9 @@ const fetchAll = async ({ isPrivate, ownerId, ownersIds } = {}) => {
     .leftJoin('users', 'users.id', `usersLeagues.userId`)
     .where(
       appendWhere({
-        isPrivate
+        isPrivate,
+        status,
+        userId
       })
     )
     .where(`${TABLE_NAME}.status`, '<>', STATUS.DELETED)
@@ -130,9 +138,11 @@ const appendEntities = (rows) =>
     values
   )(rows)
 
-const appendWhere = ({ isPrivate }) =>
+const appendWhere = ({ isPrivate, userId, status }) =>
   omitBy(isNil, {
-    [`${TABLE_NAME}.private`]: isPrivate
+    [`${TABLE_NAME}.private`]: isPrivate,
+    'usersLeagues.status': status,
+    'usersLeagues.userId': userId
   })
 
 const leaguesModel = baseModel(TABLE_NAME, columns)
