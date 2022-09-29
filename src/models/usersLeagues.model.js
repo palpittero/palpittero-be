@@ -19,7 +19,7 @@ const fetchByUser = async ({ id, status }) => {
 const fetchByLeague = async ({ id, status }) => {
   return await knex(TABLE_NAME)
     .from(TABLE_NAME)
-    .select(['leagues.*', 'usersLeagues.status AS status'])
+    .select(['usersLeagues.*'])
     .join('leagues', 'leagues.id', 'usersLeagues.leagueId')
     .where(omitBy(isNil, { leagueId: id, [`${TABLE_NAME}.status`]: status }))
 }
