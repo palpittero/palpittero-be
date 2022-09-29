@@ -11,6 +11,7 @@ if (NODE_ENV === 'memory') {
 } else {
   // await database.raw(`SET time_zone='America/Sao_Paulo';`)
   await database.raw(`SET GLOBAL time_zone = '-3:00';`)
+  await database.raw(`SET SESSION time_zone = '-3:00';`)
 }
 
 export default database

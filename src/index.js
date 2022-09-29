@@ -13,6 +13,4 @@ app.use('/api', router)
 
 const port = process.env.API_PORT || '3000'
 
-app.listen(port, function () {
-  console.log(`Listening on port ${port}`)
-})
+app.listen(port, () => console.log(`Listening on port ${port}`))
