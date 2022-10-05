@@ -9,7 +9,6 @@ import championshipsModel from '../../models/championships.model'
 import { sendLeagueInvitationEmail } from '../email/email.service'
 import { EMAIL_LEAGUE_VISIBILITY } from '../email/email.constants'
 import { safeJSONParse } from '../../utils/misc'
-import { USERS_LEAGUES_STATUSES } from '../usersLeagues/usersLeagues.constants'
 import difference from 'lodash/fp/difference'
 
 const getLeagues = async (req, res) => {
@@ -236,8 +235,7 @@ const getLeagueChampionships = async (req, res) => {
 const getLoggedUserLeagues = async (req, res) => {
   const userId = res.locals.jwt.user.id
   const leagues = await leaguesModel.fetchAll({
-    userId,
-    status: USERS_LEAGUES_STATUSES.APPROVED
+    userId
   })
 
   res.json({
