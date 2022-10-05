@@ -158,10 +158,11 @@ const getChampionshipRounds = async (req, res) => {
 
   const lastRoundId = maxBy('code', championshipRounds)?.id
 
-  const currentRoundId = minBy(
-    'roundId',
-    championshipMatches.filter((match) => match.status === 'scheduled')
-  )?.roundId
+  const currentRoundId =
+    minBy(
+      'roundId',
+      championshipMatches.filter((match) => match.status === 'scheduled')
+    )?.roundId || firstRoundId
 
   return res.json({
     data: orderBy(

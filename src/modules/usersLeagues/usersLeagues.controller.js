@@ -53,7 +53,11 @@ const acceptInvitation = async (req, res) => {
   const { token } = req.params
   const secret = process.env.AUTH_TOKEN_SECRET
 
-  const tokenValidation = validateToken({ token, secret })
+  const tokenValidation = validateToken({
+    token,
+    secret,
+    user: res.locals.jwt.user
+  })
 
   if (!tokenValidation) {
     return res.sendStatus(400)

@@ -124,9 +124,7 @@ const signUp = async (req, res) => {
     status
   })
 
-  if (!status) {
-    await sendAccountCreationEmail({ name, email, token })
-  }
+  await sendAccountCreationEmail({ name, email, token })
 
   return res.sendStatus(201)
 }
@@ -135,7 +133,11 @@ const activateAccount = async (req, res) => {
   const { token } = req.params
   const secret = process.env.AUTH_TOKEN_SECRET
 
-  const tokenValidation = validateToken({ token, secret })
+  const tokenValidation = validateToken({
+    token,
+    secret,
+    user: res.locals.jwt.user
+  })
 
   if (!tokenValidation) {
     return res.sendStatus(400)
@@ -184,7 +186,11 @@ const resetPassword = async (req, res) => {
   const { token, password, passwordConfirmation } = req.body
   const secret = process.env.AUTH_TOKEN_SECRET
 
-  const tokenValidation = validateToken({ token, secret })
+  const tokenValidation = validateToken({
+    token,
+    secret,
+    user: res.locals.jwt.user
+  })
 
   if (!tokenValidation) {
     return res.sendStatus(400)
@@ -218,7 +224,11 @@ const validate = async (req, res) => {
   const { token } = req.params
   const secret = process.env.AUTH_TOKEN_SECRET
 
-  const tokenValidation = validateToken({ token, secret })
+  const tokenValidation = validateToken({
+    token,
+    secret,
+    user: res.locals.jwt.user
+  })
 
   if (!tokenValidation) {
     return res.sendStatus(422)
