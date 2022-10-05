@@ -233,9 +233,11 @@ const getLeagueChampionships = async (req, res) => {
 }
 
 const getLoggedUserLeagues = async (req, res) => {
+  const { status } = req.query
   const userId = res.locals.jwt.user.id
   const leagues = await leaguesModel.fetchAll({
-    userId
+    userId,
+    status
   })
 
   res.json({

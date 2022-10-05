@@ -3,7 +3,7 @@ import {
   createUser,
   getUsers,
   getUser,
-  getUserLeagues,
+  // getUserLeagues,
   updateUser,
   deleteUser,
   deleteUsers
@@ -13,7 +13,7 @@ const router = Router()
 
 router.get('/', getUsers)
 router.get('/:id', getUser)
-router.get('/:id/leagues', getUserLeagues)
+// router.get('/:id/leagues', getUserLeagues)
 router.post('/', createUser)
 router.put('/:id', updateUser)
 router.delete('/:id', deleteUser)
