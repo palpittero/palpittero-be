@@ -10,6 +10,7 @@ import {
 import minBy from 'lodash/fp/minBy'
 import maxBy from 'lodash/fp/maxBy'
 import difference from 'lodash/fp/difference'
+import orderBy from 'lodash/fp/orderBy'
 import { CHAMPIONSHIPS_ROUNDS } from './championships.constants'
 
 const getChampionships = async (req, res) => {
@@ -163,12 +164,16 @@ const getChampionshipRounds = async (req, res) => {
   )?.roundId
 
   return res.json({
-    data: championshipRounds.map((round) => ({
-      ...round,
-      first: round.id === firstRoundId,
-      last: round.id === lastRoundId,
-      current: round.id === currentRoundId
-    }))
+    data: orderBy(
+      'code',
+      'asc',
+      championshipRounds.map((round) => ({
+        ...round,
+        first: round.id === firstRoundId,
+        last: round.id === lastRoundId,
+        current: round.id === currentRoundId
+      }))
+    )
   })
 }
 
