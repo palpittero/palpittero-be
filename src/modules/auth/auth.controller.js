@@ -101,7 +101,7 @@ const signUp = async (req, res) => {
     return res.sendStatus(400)
   }
 
-  const user = await usersModel.fetchByEmail(email)
+  const user = await usersModel.fetchByEmail(email.toLowerCase())
 
   if (user) {
     return res.sendStatus(409)
@@ -116,7 +116,7 @@ const signUp = async (req, res) => {
 
   await usersModel.insert({
     name,
-    email,
+    email: email.toLowerCase(),
     password: passwordHash,
     token,
     role,
