@@ -76,10 +76,11 @@ const fetchById = async (id) => {
       'usersLeagues.owner AS usersLeaguesOwner',
       'usersLeagues.status AS usersLeaguesStatus',
       'usersLeagues.leagueId AS usersLeaguesLeagueId',
-      'users.name AS userName'
+      'users.name AS userName',
+      'users.email AS userEmail'
     ])
     .leftJoin('usersLeagues', 'usersLeagues.leagueId', `${TABLE_NAME}.id`)
-    .leftJoin('users', 'users.id', `usersLeagues.id`)
+    .leftJoin('users', 'users.id', `usersLeagues.userId`)
     .where({ [`${TABLE_NAME}.id`]: id })
     .where(`${TABLE_NAME}.status`, '<>', STATUS.DELETED)
 
