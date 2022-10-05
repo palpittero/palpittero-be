@@ -8,6 +8,17 @@ const TABLE_NAME = 'usersLeagues'
 
 const usersLeaguesModel = baseModel(TABLE_NAME)
 
+const fetchAll = async ({ userId, status } = {}) => {
+  const rows = await knex(TABLE_NAME).select().where(
+    appendWhere({
+      userId,
+      status
+    })
+  )
+
+  return rows
+}
+
 const fetchByUser = async ({ id, status }) => {
   return await knex(TABLE_NAME)
     .from(TABLE_NAME)
@@ -33,8 +44,15 @@ const unlinkLeagues = async (ownersIds) =>
     .whereIn('userId', ownersIds)
     .andWhere({ owner: 1 })
 
+const appendWhere = ({ userId, status }) =>
+  omitBy(isNil, {
+    userId,
+    status
+  })
+
 export default {
   ...usersLeaguesModel,
+  fetchAll,
   fetchByUser,
   fetchByLeague,
   deleteByLeague,

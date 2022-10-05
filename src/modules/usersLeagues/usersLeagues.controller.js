@@ -36,15 +36,6 @@ const inviteUsers = async (req, res) => {
       }
     )
 
-    console.log({
-      name: user.name,
-      email: user.email,
-      league: league.name,
-      owner: res.locals.jwt.user.name,
-      visibility,
-      token
-    })
-
     sendLeagueInvitationEmail({
       name: user.name,
       email: user.email,
@@ -91,6 +82,43 @@ const acceptInvitation = async (req, res) => {
   return res.sendStatus(200)
 }
 
+const updateInvitations = async (req, res) => {
+  const { invitations } = req.body
+  const userId = res.locals.jwt.user.id
+
+  const acceptedInvitations = Object.values(invitations)
+    .filter(({ status }) => status)
+    .map(({ leagueId }) => ({
+      leagueId,
+      userId,
+      status: USERS_LEAGUES_STATUSES.APPROVED
+    }))
+
+  if (acceptedInvitations.length > 0) {
+    await usersLeaguesModel.replace(acceptedInvitations)
+  }
+
+  const pendingInvitations = await usersLeaguesModel.fetchAll({
+    userId,
+    status: USERS_LEAGUES_STATUSES.INVITED
+  })
+
+  const rejectedInvitationsLeaguesIds = Object.values(invitations)
+    .filter(({ status }) => !status)
+    .map(({ leagueId }) => leagueId)
+
+  const pendingInvitationsIds = pendingInvitations
+    .filter(({ leagueId }) => rejectedInvitationsLeaguesIds.includes(leagueId))
+    .map(({ id }) => id)
+
+  await usersLeaguesModel.batchDelete({
+    columnName: 'id',
+    values: pendingInvitationsIds
+  })
+
+  return res.sendStatus(200)
+}
+
 const deleteUser = async (req, res) => {
   const { leagueId, userId } = req.params
 
@@ -102,4 +130,36 @@ const deleteUser = async (req, res) => {
   res.sendStatus(200)
 }
 
-export { inviteUsers, acceptInvitation, deleteUser }
+const joinLeague = async (req, res) => {
+  const leagueId = parseInt(req.params.leagueId)
+  const userId = res.locals.jwt.user.id
+
+  const league = await leaguesModel.fetchById(leagueId)
+
+  if (!league) {
+    return res.sendStatus(404)
+  }
+
+  // ToDo - check proper status
+  if (league.private) {
+    return res.sendStatus(422)
+  }
+
+  const userLeague = {
+    userId,
+    leagueId,
+    status: USERS_LEAGUES_STATUSES.APPROVED
+  }
+
+  await usersLeaguesModel.replace([userLeague])
+
+  return res.sendStatus(200)
+}
+
+export {
+  inviteUsers,
+  acceptInvitation,
+  deleteUser,
+  updateInvitations,
+  joinLeague
+}
