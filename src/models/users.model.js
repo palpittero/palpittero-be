@@ -14,6 +14,7 @@ const columns = [
   'password',
   'phone',
   'role',
+  'avatar',
   'status',
   'createdAt',
   'updatedAt'

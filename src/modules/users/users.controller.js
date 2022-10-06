@@ -48,12 +48,15 @@ const updateUser = async (req, res) => {
     return res.sendStatus(409)
   }
 
+  const avatar = req.file?.path ? req.file?.path : req.body.avatar
+
   await usersModel.update({
     id,
     name,
     email,
     phone,
     role,
+    avatar,
     status
   })
 
