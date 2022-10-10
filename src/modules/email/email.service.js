@@ -11,12 +11,13 @@ const sendAccountCreationEmail = ({ name, email, token }) => {
   return sendEmail({ to: email, subject, html })
 }
 
-const sendEmailChangeEmail = ({ name, email }) => {
+const sendEmailChangeEmail = ({ name, email, to }) => {
   const { subject, html } = emailStrategy[EMAILS_TYPES.EMAIL_CHANGE]({
-    name
+    name,
+    email
   })
 
-  return sendEmail({ to: email, subject, html })
+  return sendEmail({ to, subject, html })
 }
 
 const sendEmailActivationEmail = ({ name, email, token }) => {

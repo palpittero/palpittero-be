@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken'
 import usersLeaguesModel from '../../models/usersLeagues.model'
 import leaguesModel from '../../models/leagues.model'
 import { USERS_LEAGUES_STATUSES } from './usersLeagues.constants'
-import { validateToken } from '../../shared/token.service'
+import { validateAuthenticatedToken } from '../../shared/token.service'
 import usersModel from '../../models/users.model'
 import { sendLeagueInvitationEmail } from '../email/email.service'
 import { EMAIL_LEAGUE_VISIBILITY } from '../email/email.constants'
@@ -53,7 +53,7 @@ const acceptInvitation = async (req, res) => {
   const { token } = req.params
   const secret = process.env.AUTH_TOKEN_SECRET
 
-  const tokenValidation = validateToken({
+  const tokenValidation = validateAuthenticatedToken({
     token,
     secret,
     user: res.locals.jwt.user

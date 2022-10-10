@@ -8,7 +8,7 @@ import {
   sendAccountCreationEmail,
   sendPasswordResetEmail
 } from '../email/email.service'
-import { validateToken } from '../../shared/token.service'
+import { validateAnonymousToken } from '../../shared/token.service'
 import { USER_ROLES } from '../users/users.constants'
 
 const authenticate = async (req, res) => {
@@ -55,23 +55,23 @@ const refreshToken = async (req, res) => {
 }
 
 const updatePassword = async (req, res) => {
-  const { password, newPassword } = req.body
+  const { currentPassword, newPassword } = req.body
   const user = await usersModel.fetchById(res.locals.jwt.user.id)
 
-  const isPasswordCorrect = await bcrypt.compare(password, user.password)
+  const isPasswordCorrect = await bcrypt.compare(currentPassword, user.password)
 
   if (!isPasswordCorrect) {
-    return res.sendStatus(401)
+    return res.sendStatus(400)
   }
 
   bcrypt.genSalt(10, (err, salt) => {
     bcrypt.hash(newPassword, salt, async (err, hash) => {
-      const [id] = await usersModel.update({
+      await usersModel.update({
         id: user.id,
         password: hash
       })
 
-      res.status(201).json({ data: id })
+      res.status(200)
     })
   })
 
@@ -133,10 +133,9 @@ const activateAccount = async (req, res) => {
   const { token } = req.params
   const secret = process.env.AUTH_TOKEN_SECRET
 
-  const tokenValidation = validateToken({
+  const tokenValidation = validateAnonymousToken({
     token,
-    secret,
-    user: res.locals.jwt.user
+    secret
   })
 
   if (!tokenValidation) {
@@ -186,10 +185,9 @@ const resetPassword = async (req, res) => {
   const { token, password, passwordConfirmation } = req.body
   const secret = process.env.AUTH_TOKEN_SECRET
 
-  const tokenValidation = validateToken({
+  const tokenValidation = validateAnonymousToken({
     token,
-    secret,
-    user: res.locals.jwt.user
+    secret
   })
 
   if (!tokenValidation) {
@@ -224,10 +222,9 @@ const validate = async (req, res) => {
   const { token } = req.params
   const secret = process.env.AUTH_TOKEN_SECRET
 
-  const tokenValidation = validateToken({
+  const tokenValidation = validateAnonymousToken({
     token,
-    secret,
-    user: res.locals.jwt.user
+    secret
   })
 
   if (!tokenValidation) {

@@ -61,7 +61,7 @@ const updateUser = async (req, res) => {
   })
 
   if (email !== user.email) {
-    await sendEmailChangeEmail({ name, email: user.email })
+    await sendEmailChangeEmail({ name, email, to: user.email })
     await sendEmailActivationEmail({ name, email })
   }
 
