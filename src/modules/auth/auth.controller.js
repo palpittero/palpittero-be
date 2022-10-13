@@ -10,6 +10,10 @@ import {
 } from '../email/email.service'
 import { validateAnonymousToken } from '../../shared/token.service'
 import { USER_ROLES } from '../users/users.constants'
+import leaguesInvitationsModel from '../../models/leaguesInvitations.model'
+import { LEAGUES_INVITATIONS_STATUSES } from '../leaguesInvitations/leaguesInvitations.constants'
+import usersLeaguesModel from '../../models/usersLeagues.model'
+import { appendUsersLeagues } from '../usersLeagues/usersLeagues.helpers'
 
 const authenticate = async (req, res) => {
   const { email, password } = req.body
@@ -150,14 +154,33 @@ const activateAccount = async (req, res) => {
     return res.sendStatus(404)
   }
 
-  if (user.status === STATUS.ACTIVE) {
-    return res.sendStatus(200)
+  if (user.status === STATUS.INACTIVE) {
+    await usersModel.update({
+      id: user.id,
+      token: null,
+      status: STATUS.ACTIVE
+    })
   }
 
-  await usersModel.update({
-    id: user.id,
-    token: null,
-    status: STATUS.ACTIVE
+  const leaguesInvitations = await leaguesInvitationsModel.fetchAll({
+    email: user.email,
+    status: LEAGUES_INVITATIONS_STATUSES.PENDING
+  })
+
+  leaguesInvitations.map(async ({ leagueId }) => {
+    const usersLeagues = appendUsersLeagues({
+      leagueId,
+      users: [user]
+    })
+
+    await usersLeaguesModel.replace(usersLeagues)
+  })
+
+  const leaguesInvitationsIds = leaguesInvitations.map(({ id }) => id)
+
+  await leaguesInvitationsModel.batchDelete({
+    columnName: 'id',
+    values: leaguesInvitationsIds
   })
 
   return res.sendStatus(200)

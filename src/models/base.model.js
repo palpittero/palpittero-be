@@ -26,7 +26,10 @@ export default (tableName, columns = []) => {
 
   const insert = (row) => knex(tableName).insert(row)
 
-  const update = (row) => knex(tableName).update(row).where({ id: row.id })
+  const update = (row, key = 'id') =>
+    knex(tableName)
+      .update(row)
+      .where({ [key]: row[key] })
 
   const del = (where) => knex(tableName).where(where).delete()
 

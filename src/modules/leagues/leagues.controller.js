@@ -6,10 +6,14 @@ import { appendUsersLeagues } from '../usersLeagues/usersLeagues.helpers'
 import { appendLeaguesChampionships } from '../leaguesChampionships/leaguesChampionships.helpers'
 import leaguesChampionshipsModel from '../../models/leaguesChampionships.model'
 import championshipsModel from '../../models/championships.model'
-import { sendLeagueInvitationEmail } from '../email/email.service'
+import {
+  sendAnonymousLeagueInvitationEmail,
+  sendLeagueInvitationEmail
+} from '../email/email.service'
 import { EMAIL_LEAGUE_VISIBILITY } from '../email/email.constants'
 import { safeJSONParse } from '../../utils/misc'
 import difference from 'lodash/fp/difference'
+import leaguesInvitationsModel from '../../models/leaguesInvitations.model'
 
 const getLeagues = async (req, res) => {
   const { private: isPrivate, ownerId } = req.query
@@ -28,8 +32,17 @@ const getLeague = async (req, res) => {
     return res.sendStatus(404)
   }
 
+  const leaguesInvitations = await leaguesInvitationsModel.fetchAll({
+    leagueId: id
+  })
+
+  const invitations = leaguesInvitations.map(({ email }) => email)
+
   return res.json({
-    data: league
+    data: {
+      ...league,
+      users: [...league.users, ...invitations]
+    }
   })
 }
 
@@ -47,6 +60,12 @@ const createLeague = async (req, res) => {
   const championships = safeJSONParse(rawChampionships)
 
   const badge = req.file?.path ? req.file?.path : req.body.badge
+  const ownerId = users.find(({ owner }) => owner)?.id || res.locals.jwt.user.id
+
+  const visibility = isPrivate
+    ? EMAIL_LEAGUE_VISIBILITY.PRIVATE
+    : EMAIL_LEAGUE_VISIBILITY.PUBLIC
+
   const [leagueId] = await leaguesModel.insert({
     name,
     badge,
@@ -55,15 +74,6 @@ const createLeague = async (req, res) => {
     status
   })
 
-  const visibility = isPrivate
-    ? EMAIL_LEAGUE_VISIBILITY.PRIVATE
-    : EMAIL_LEAGUE_VISIBILITY.PUBLIC
-
-  const ownerId = res.locals.jwt.user.id
-  const usersLeagues = appendUsersLeagues({ leagueId, users, ownerId })
-
-  await usersLeaguesModel.replace(usersLeagues)
-
   const leaguesChampionships = appendLeaguesChampionships({
     leagueId,
     championships
@@ -71,9 +81,19 @@ const createLeague = async (req, res) => {
 
   await leaguesChampionshipsModel.replace(leaguesChampionships)
 
-  users
-    .filter(({ owner }) => !owner)
-    .map((user) => {
+  const existingUsers = users.filter((user) => user?.id)
+  const nonExistingUsers = users.filter((user) => !user?.id)
+
+  const usersLeagues = appendUsersLeagues({
+    leagueId,
+    users: existingUsers,
+    ownerId
+  })
+
+  await usersLeaguesModel.replace(usersLeagues)
+
+  existingUsers.map(async (user) => {
+    if (!user.owner) {
       const token = jwt.sign(
         { email: user.email, leagueId },
         process.env.AUTH_TOKEN_SECRET,
@@ -90,13 +110,35 @@ const createLeague = async (req, res) => {
         visibility,
         token
       })
+    }
+  })
+
+  nonExistingUsers.map(async (user) => {
+    const token = jwt.sign(
+      { email: user, leagueId },
+      process.env.AUTH_TOKEN_SECRET,
+      {
+        expiresIn: process.env.AUTH_TOKEN_EXPIRES_IN
+      }
+    )
+
+    await leaguesInvitationsModel.replace({ email: user, leagueId })
+
+    sendAnonymousLeagueInvitationEmail({
+      email: user,
+      league: name,
+      owner: res.locals.jwt.user.name,
+      visibility,
+      token
     })
+  })
 
   res.status(201).json({ data: leagueId })
 }
 
 const updateLeague = async (req, res) => {
   const leagueId = parseInt(req.params.id)
+
   const {
     name,
     pointsStrategy,
@@ -113,9 +155,14 @@ const updateLeague = async (req, res) => {
   }
 
   const users = safeJSONParse(rawUsers)
-  const usersIds = users.map(({ id }) => id)
   const championships = safeJSONParse(rawChampionships)
-  const badge = req.file?.path ? req.file?.path : req.body.badge
+
+  const badge = req.file?.path ? req.file?.path : req.body.badge3
+  const ownerId = users.find(({ owner }) => owner)?.id || res.locals.jwt.user.id
+
+  const visibility = isPrivate
+    ? EMAIL_LEAGUE_VISIBILITY.PRIVATE
+    : EMAIL_LEAGUE_VISIBILITY.PUBLIC
 
   await leaguesModel.update({
     id: leagueId,
@@ -126,23 +173,33 @@ const updateLeague = async (req, res) => {
     status
   })
 
-  const ownerId = users.find(({ owner }) => owner)?.id || res.locals.jwt.user.id
-  const usersLeagues = appendUsersLeagues({ leagueId, users, ownerId })
-
-  const currentUsersLeagues = await usersLeaguesModel.fetchByLeague({
-    id: leagueId
+  const leaguesChampionships = appendLeaguesChampionships({
+    leagueId,
+    championships
   })
-  const currentUsersIds = currentUsersLeagues.map(({ userId }) => userId)
+
+  await leaguesChampionshipsModel.replace(leaguesChampionships)
+
+  const existingUsers = users.filter((user) => user?.id)
+  const existingUsersIds = existingUsers.map(({ id }) => id)
+
+  const usersLeagues = appendUsersLeagues({
+    leagueId,
+    users: existingUsers,
+    ownerId
+  })
 
   await usersLeaguesModel.deleteByLeague(leagueId)
   await usersLeaguesModel.replace(usersLeagues)
 
-  const addedUsersIds = difference(usersIds, currentUsersIds)
-  const addedUsers = await usersModel.fetchAll({ id: addedUsersIds })
+  const currentUsersLeagues = await usersLeaguesModel.fetchByLeague({
+    id: leagueId
+  })
 
-  const visibility = isPrivate
-    ? EMAIL_LEAGUE_VISIBILITY.PRIVATE
-    : EMAIL_LEAGUE_VISIBILITY.PUBLIC
+  const currentUsersIds = currentUsersLeagues.map(({ userId }) => userId)
+  const addedUsersIds = difference(existingUsersIds, currentUsersIds)
+
+  const addedUsers = await usersModel.fetchAll({ id: addedUsersIds })
 
   addedUsers
     .filter(({ owner }) => !owner)
@@ -165,12 +222,26 @@ const updateLeague = async (req, res) => {
       })
     })
 
-  const leaguesChampionships = appendLeaguesChampionships({
-    leagueId,
-    championships
-  })
+  const nonExistingUsers = users.filter((user) => !user?.id)
+  nonExistingUsers.map(async (user) => {
+    const token = jwt.sign(
+      { email: user, leagueId },
+      process.env.AUTH_TOKEN_SECRET,
+      {
+        expiresIn: process.env.AUTH_TOKEN_EXPIRES_IN
+      }
+    )
 
-  await leaguesChampionshipsModel.replace(leaguesChampionships)
+    await leaguesInvitationsModel.replace({ email: user, leagueId })
+
+    sendAnonymousLeagueInvitationEmail({
+      email: user,
+      league: name,
+      owner: res.locals.jwt.user.name,
+      visibility,
+      token
+    })
+  })
 
   return res.json({
     data: leagueId

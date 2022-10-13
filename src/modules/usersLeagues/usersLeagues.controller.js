@@ -6,6 +6,8 @@ import { validateAuthenticatedToken } from '../../shared/token.service'
 import usersModel from '../../models/users.model'
 import { sendLeagueInvitationEmail } from '../email/email.service'
 import { EMAIL_LEAGUE_VISIBILITY } from '../email/email.constants'
+import { LEAGUES_INVITATIONS_STATUSES } from '../leaguesInvitations/leaguesInvitations.constants'
+import leaguesInvitationsModel from '../../models/leaguesInvitations.model'
 
 const inviteUsers = async (req, res) => {
   const { leagueId, users } = req.body
@@ -74,6 +76,11 @@ const acceptInvitation = async (req, res) => {
   const userLeague = await usersLeaguesModel.fetchByUser({ id: user.id })
 
   if (userLeague?.status === USERS_LEAGUES_STATUSES.APPROVED) {
+    // await leaguesInvitationsModel.delete({
+    //   leagueId,
+    //   email: user.email
+    // })
+
     return res.sendStatus(200)
   }
 
@@ -82,6 +89,11 @@ const acceptInvitation = async (req, res) => {
     userId: user.id,
     status: USERS_LEAGUES_STATUSES.APPROVED
   })
+
+  // await leaguesInvitationsModel.delete({
+  //   leagueId,
+  //   email: user.email
+  // })
 
   return res.sendStatus(200)
 }
