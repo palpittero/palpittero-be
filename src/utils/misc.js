@@ -1,4 +1,4 @@
-const getAppRoute = (resource = '', params) => {
+const getAppRoute = (resource = '', params = {}) => {
   const url = `${process.env.APP_URL}${resource}`
   const queryString = new URLSearchParams(params).toString()
 

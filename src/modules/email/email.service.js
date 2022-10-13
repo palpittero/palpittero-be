@@ -59,10 +59,30 @@ const sendLeagueInvitationEmail = ({
   return sendEmail({ to: email, subject, html })
 }
 
+const sendAnonymousLeagueInvitationEmail = ({
+  email,
+  league,
+  owner,
+  visibility,
+  token
+}) => {
+  const { subject, html } = emailStrategy[
+    EMAILS_TYPES.PRIVATE_LEAGUE_ANONYMOUS_INVITATION
+  ]({
+    league,
+    owner,
+    visibility,
+    token
+  })
+
+  return sendEmail({ to: email, subject, html })
+}
+
 export {
   sendAccountCreationEmail,
   sendEmailChangeEmail,
   sendEmailActivationEmail,
   sendPasswordResetEmail,
-  sendLeagueInvitationEmail
+  sendLeagueInvitationEmail,
+  sendAnonymousLeagueInvitationEmail
 }

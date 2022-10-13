@@ -104,7 +104,7 @@ const emailLeagueUserInvitation = ({
 
   const html = `<p>Olá ${name},</p>
 
-  <p>Você receveu um convite de <b>${owner}</b> para partipar da sua liga ${visibility} <b>${league}</b>.</p>
+  <p>Você recebeu um convite de <b>${owner}</b> para partipar da sua liga ${visibility} <b>${league}</b>.</p>
 
   <p>Clique no link abaixo para aceitar o convite.</p>
 
@@ -131,10 +131,39 @@ const emailLeagueUserInvitation = ({
   }
 }
 
+const emailLeagueAnonymousInvitation = ({ league, owner, visibility }) => {
+  const subject = 'Você foi convidado a participar de uma liga no Palpittero'
+
+  const html = `<p>Olá,</p>
+
+  <p>Você recebeu um convite de <b>${owner}</b> para partipar da sua liga ${visibility} <b>${league}</b> no Palpittero.</p>
+
+  <p>Para poder participar, clique no link abaixo para criar sua conta e aceitar o convite.</p>
+
+  <p>
+    <a href="${getAppRoute(process.env.EMAIL_SIGN_UP)}" target="_blank">
+      Criar Conta
+    <a>
+  </p>
+
+  <p>Caso não deseje criar sua conta nem participar desta liga, ignore este e-mail.</p>
+  <p>O convite expira em 24 horas.</p>
+  <br />
+
+  Palpittero`
+
+  return {
+    subject,
+    html
+  }
+}
+
 export default {
   [EMAILS_TYPES.ACTIVATION]: activation,
   [EMAILS_TYPES.EMAIL_CHANGE]: emailChange,
   [EMAILS_TYPES.EMAIL_ACTIVATION]: emailActivation,
   [EMAILS_TYPES.PASSWORD_RESET]: emailPasswordReset,
-  [EMAILS_TYPES.PRIVATE_LEAGUE_USER_INVITATION]: emailLeagueUserInvitation
+  [EMAILS_TYPES.PRIVATE_LEAGUE_USER_INVITATION]: emailLeagueUserInvitation,
+  [EMAILS_TYPES.PRIVATE_LEAGUE_ANONYMOUS_INVITATION]:
+    emailLeagueAnonymousInvitation
 }
