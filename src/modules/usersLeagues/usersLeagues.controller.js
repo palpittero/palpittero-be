@@ -4,10 +4,14 @@ import leaguesModel from '../../models/leagues.model'
 import { USERS_LEAGUES_STATUSES } from './usersLeagues.constants'
 import { validateAuthenticatedToken } from '../../shared/token.service'
 import usersModel from '../../models/users.model'
-import { sendLeagueInvitationEmail } from '../email/email.service'
+import {
+  sendAnonymousLeagueInvitationEmail,
+  sendLeagueInvitationEmail
+} from '../email/email.service'
 import { EMAIL_LEAGUE_VISIBILITY } from '../email/email.constants'
-import { LEAGUES_INVITATIONS_STATUSES } from '../leaguesInvitations/leaguesInvitations.constants'
+import { appendUsersLeagues } from './usersLeagues.helpers'
 import leaguesInvitationsModel from '../../models/leaguesInvitations.model'
+import { LEAGUES_INVITATIONS_STATUSES } from '../leaguesInvitations/leaguesInvitations.constants'
 
 const inviteUsers = async (req, res) => {
   const { leagueId, users } = req.body
@@ -22,29 +26,62 @@ const inviteUsers = async (req, res) => {
     ? EMAIL_LEAGUE_VISIBILITY.PRIVATE
     : EMAIL_LEAGUE_VISIBILITY.PUBLIC
 
-  const usersLeagues = users.map((user) => ({
-    userId: user.id,
-    leagueId
-  }))
+  const existingUsers = users.filter((user) => user?.id)
+  const nonExistingUsers = users.filter((user) => !user?.id)
 
-  await usersLeaguesModel.replace(usersLeagues)
+  if (existingUsers.length > 0) {
+    const usersLeagues = appendUsersLeagues({
+      leagueId,
+      users: existingUsers
+    })
 
-  users.map((user) => {
+    await usersLeaguesModel.replace(usersLeagues)
+
+    existingUsers.map(async (user) => {
+      if (!user.owner) {
+        const token = jwt.sign(
+          { email: user.email, leagueId },
+          process.env.AUTH_TOKEN_SECRET,
+          {
+            expiresIn: process.env.AUTH_TOKEN_EXPIRES_IN
+          }
+        )
+
+        sendLeagueInvitationEmail({
+          name: user.name,
+          email: user.email,
+          league: league.name,
+          owner: res.locals.jwt.user.name,
+          visibility,
+          token
+        })
+      }
+    })
+  }
+
+  nonExistingUsers.map(async (user) => {
     const token = jwt.sign(
-      { email: user.email, leagueId },
+      { email: user, leagueId },
       process.env.AUTH_TOKEN_SECRET,
       {
         expiresIn: process.env.AUTH_TOKEN_EXPIRES_IN
       }
     )
 
-    sendLeagueInvitationEmail({
-      name: user.name,
-      email: user.email,
+    await leaguesInvitationsModel.replace({ email: user, leagueId })
+
+    await sendAnonymousLeagueInvitationEmail({
+      email: user,
       league: league.name,
       owner: res.locals.jwt.user.name,
       visibility,
       token
+    })
+
+    await leaguesInvitationsModel.replace({
+      email: user,
+      leagueId,
+      status: LEAGUES_INVITATIONS_STATUSES.SENT
     })
   })
 

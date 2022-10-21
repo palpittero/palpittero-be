@@ -6,6 +6,7 @@ import { generateTokens } from '../../utils/auth'
 import { STATUS } from '../../shared/constants'
 import {
   sendAccountCreationEmail,
+  sendLeagueInvitationEmail,
   sendPasswordResetEmail
 } from '../email/email.service'
 import { validateAnonymousToken } from '../../shared/token.service'
@@ -14,6 +15,9 @@ import leaguesInvitationsModel from '../../models/leaguesInvitations.model'
 import { LEAGUES_INVITATIONS_STATUSES } from '../leaguesInvitations/leaguesInvitations.constants'
 import usersLeaguesModel from '../../models/usersLeagues.model'
 import { appendUsersLeagues } from '../usersLeagues/usersLeagues.helpers'
+import { USERS_LEAGUES_STATUSES } from '../usersLeagues/usersLeagues.constants'
+import leaguesModel from '../../models/leagues.model'
+import { EMAIL_LEAGUE_VISIBILITY } from '../email/email.constants'
 
 const authenticate = async (req, res) => {
   const { email, password } = req.body
@@ -164,24 +168,63 @@ const activateAccount = async (req, res) => {
 
   const leaguesInvitations = await leaguesInvitationsModel.fetchAll({
     email: user.email,
-    status: LEAGUES_INVITATIONS_STATUSES.PENDING
-  })
-
-  leaguesInvitations.map(async ({ leagueId }) => {
-    const usersLeagues = appendUsersLeagues({
-      leagueId,
-      users: [user]
-    })
-
-    await usersLeaguesModel.replace(usersLeagues)
+    status: LEAGUES_INVITATIONS_STATUSES.SENT
   })
 
   const leaguesInvitationsIds = leaguesInvitations.map(({ id }) => id)
 
-  await leaguesInvitationsModel.batchDelete({
-    columnName: 'id',
-    values: leaguesInvitationsIds
-  })
+  const leaguesInvitationsLeaguesIds = leaguesInvitations.map(
+    ({ leagueId }) => leagueId
+  )
+
+  console.log({ leaguesInvitationsLeaguesIds })
+
+  if (leaguesInvitations.length > 0) {
+    const leagues = await leaguesModel.fetchByIds(leaguesInvitationsLeaguesIds)
+    console.log(leagues)
+
+    leagues.map(async (league) => {
+      const visibility = league.private
+        ? EMAIL_LEAGUE_VISIBILITY.PRIVATE
+        : EMAIL_LEAGUE_VISIBILITY.PUBLIC
+
+      const owner = league.users.find(({ owner }) => owner)?.name
+
+      const usersLeagues = appendUsersLeagues({
+        leagueId: league.id,
+        users: [
+          {
+            ...user,
+            status: USERS_LEAGUES_STATUSES.INVITED
+          }
+        ]
+      })
+
+      const token = jwt.sign(
+        { email: user.email, leagueId: league.id },
+        process.env.AUTH_TOKEN_SECRET,
+        {
+          expiresIn: process.env.AUTH_TOKEN_EXPIRES_IN
+        }
+      )
+
+      sendLeagueInvitationEmail({
+        name: user.name,
+        email: user.email,
+        league: league.name,
+        owner,
+        visibility,
+        token
+      })
+
+      await usersLeaguesModel.replace(usersLeagues)
+    })
+
+    await leaguesInvitationsModel.batchDelete({
+      columnName: 'id',
+      values: leaguesInvitationsIds
+    })
+  }
 
   return res.sendStatus(200)
 }
