@@ -89,6 +89,27 @@ const fetchById = async (id) => {
   return appendEntities(rows)[0]
 }
 
+const fetchByIds = async (ids) => {
+  const rows = await knex(TABLE_NAME)
+    .select([
+      `${TABLE_NAME}.*`,
+      'usersLeagues.id AS usersLeaguesId',
+      'usersLeagues.userId AS usersLeaguesUserId',
+      'usersLeagues.points AS usersLeaguesPoints',
+      'usersLeagues.owner AS usersLeaguesOwner',
+      'usersLeagues.status AS usersLeaguesStatus',
+      'usersLeagues.leagueId AS usersLeaguesLeagueId',
+      'users.name AS userName',
+      'users.email AS userEmail'
+    ])
+    .leftJoin('usersLeagues', 'usersLeagues.leagueId', `${TABLE_NAME}.id`)
+    .leftJoin('users', 'users.id', `usersLeagues.userId`)
+    .whereIn(`${TABLE_NAME}.id`, ids)
+    .where(`${TABLE_NAME}.status`, '<>', STATUS.DELETED)
+
+  return appendEntities(rows)
+}
+
 const appendOwnerIdSubQuery = (leagueId) => {
   return knex.raw(
     `(${knex('usersLeagues')
@@ -156,5 +177,6 @@ const leaguesModel = baseModel(TABLE_NAME, columns)
 export default {
   ...leaguesModel,
   fetchAll,
-  fetchById
+  fetchById,
+  fetchByIds
 }

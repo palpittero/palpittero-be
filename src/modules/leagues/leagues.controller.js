@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken'
 import difference from 'lodash/fp/difference'
+import uniqBy from 'lodash/fp/uniqBy'
 import leaguesModel from '../../models/leagues.model'
 import usersModel from '../../models/users.model'
 import usersLeaguesModel from '../../models/usersLeagues.model'
@@ -84,34 +85,36 @@ const createLeague = async (req, res) => {
   const existingUsers = users.filter((user) => user?.id)
   const nonExistingUsers = users.filter((user) => !user?.id)
 
-  const usersLeagues = appendUsersLeagues({
-    leagueId,
-    users: existingUsers,
-    ownerId
-  })
+  if (existingUsers.length > 0) {
+    const usersLeagues = appendUsersLeagues({
+      leagueId,
+      users: existingUsers,
+      ownerId
+    })
 
-  await usersLeaguesModel.replace(usersLeagues)
+    await usersLeaguesModel.replace(usersLeagues)
 
-  existingUsers.map(async (user) => {
-    if (!user.owner) {
-      const token = jwt.sign(
-        { email: user.email, leagueId },
-        process.env.AUTH_TOKEN_SECRET,
-        {
-          expiresIn: process.env.AUTH_TOKEN_EXPIRES_IN
-        }
-      )
+    existingUsers.map(async (user) => {
+      if (!user.owner) {
+        const token = jwt.sign(
+          { email: user.email, leagueId },
+          process.env.AUTH_TOKEN_SECRET,
+          {
+            expiresIn: process.env.AUTH_TOKEN_EXPIRES_IN
+          }
+        )
 
-      sendLeagueInvitationEmail({
-        name: user.name,
-        email: user.email,
-        league: name,
-        owner: res.locals.jwt.user.name,
-        visibility,
-        token
-      })
-    }
-  })
+        sendLeagueInvitationEmail({
+          name: user.name,
+          email: user.email,
+          league: name,
+          owner: res.locals.jwt.user.name,
+          visibility,
+          token
+        })
+      }
+    })
+  }
 
   nonExistingUsers.map(async (user) => {
     const token = jwt.sign(
@@ -124,12 +127,18 @@ const createLeague = async (req, res) => {
 
     await leaguesInvitationsModel.replace({ email: user, leagueId })
 
-    sendAnonymousLeagueInvitationEmail({
+    await sendAnonymousLeagueInvitationEmail({
       email: user,
       league: name,
       owner: res.locals.jwt.user.name,
       visibility,
       token
+    })
+
+    await leaguesInvitationsModel.replace({
+      email: user,
+      leagueId,
+      status: LEAGUES_INVITATIONS_STATUSES.SENT
     })
   })
 
@@ -184,14 +193,17 @@ const updateLeague = async (req, res) => {
   const existingUsers = users.filter((user) => user?.name)
   const existingNonLeagueUsers = existingUsers.filter((user) => !user.status)
 
-  const usersLeagues = appendUsersLeagues({
-    leagueId,
-    users: existingUsers,
-    ownerId
-  })
-
   await usersLeaguesModel.deleteByLeague(leagueId)
-  await usersLeaguesModel.replace(usersLeagues)
+
+  if (existingUsers.length > 0) {
+    const usersLeagues = appendUsersLeagues({
+      leagueId,
+      users: existingUsers,
+      ownerId
+    })
+
+    await usersLeaguesModel.replace(usersLeagues)
+  }
 
   const existingInvitedLeagueUsers = users.filter(
     (user) =>
@@ -311,7 +323,7 @@ const deleteLeagues = async (req, res) => {
 }
 
 const getLeagueUsers = async (req, res) => {
-  const { id } = req.params
+  const id = parseInt(req.params.id)
   const { status } = req.query
 
   const league = await leaguesModel.fetchById(id)
@@ -322,8 +334,19 @@ const getLeagueUsers = async (req, res) => {
 
   const leagueUsers = await usersModel.fetchByLeague({ leagueId: id, status })
 
+  const leaguesInvitations = status
+    ? []
+    : (
+        await leaguesInvitationsModel.fetchAll({
+          leagueId: id
+        })
+      ).filter(
+        (leagueInvitation) => !status || status === leagueInvitation.status
+      )
+
+  const users = uniqBy('email', [...leagueUsers, ...leaguesInvitations])
   return res.json({
-    data: leagueUsers
+    data: users
   })
 }
 
