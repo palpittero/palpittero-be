@@ -1,19 +1,21 @@
 import jwt from 'jsonwebtoken'
+import difference from 'lodash/fp/difference'
 import leaguesModel from '../../models/leagues.model'
 import usersModel from '../../models/users.model'
 import usersLeaguesModel from '../../models/usersLeagues.model'
-import { appendUsersLeagues } from '../usersLeagues/usersLeagues.helpers'
-import { appendLeaguesChampionships } from '../leaguesChampionships/leaguesChampionships.helpers'
+import leaguesInvitationsModel from '../../models/leaguesInvitations.model'
 import leaguesChampionshipsModel from '../../models/leaguesChampionships.model'
 import championshipsModel from '../../models/championships.model'
+import { appendUsersLeagues } from '../usersLeagues/usersLeagues.helpers'
+import { appendLeaguesChampionships } from '../leaguesChampionships/leaguesChampionships.helpers'
 import {
   sendAnonymousLeagueInvitationEmail,
   sendLeagueInvitationEmail
 } from '../email/email.service'
 import { EMAIL_LEAGUE_VISIBILITY } from '../email/email.constants'
 import { safeJSONParse } from '../../utils/misc'
-import difference from 'lodash/fp/difference'
-import leaguesInvitationsModel from '../../models/leaguesInvitations.model'
+import { USERS_LEAGUES_STATUSES } from '../usersLeagues/usersLeagues.constants'
+import { LEAGUES_INVITATIONS_STATUSES } from '../leaguesInvitations/leaguesInvitations.constants'
 
 const getLeagues = async (req, res) => {
   const { private: isPrivate, ownerId } = req.query
@@ -36,12 +38,10 @@ const getLeague = async (req, res) => {
     leagueId: id
   })
 
-  const invitations = leaguesInvitations.map(({ email }) => email)
-
   return res.json({
     data: {
       ...league,
-      users: [...league.users, ...invitations]
+      users: [...league.users, ...leaguesInvitations]
     }
   })
 }
@@ -145,7 +145,8 @@ const updateLeague = async (req, res) => {
     private: isPrivate,
     users: rawUsers,
     championships: rawChampionships,
-    status
+    status,
+    resendInvitations
   } = req.body
 
   const league = await leaguesModel.fetchById(leagueId)
@@ -180,8 +181,8 @@ const updateLeague = async (req, res) => {
 
   await leaguesChampionshipsModel.replace(leaguesChampionships)
 
-  const existingUsers = users.filter((user) => user?.id)
-  const existingUsersIds = existingUsers.map(({ id }) => id)
+  const existingUsers = users.filter((user) => user?.name)
+  const existingNonLeagueUsers = existingUsers.filter((user) => !user.status)
 
   const usersLeagues = appendUsersLeagues({
     leagueId,
@@ -192,54 +193,95 @@ const updateLeague = async (req, res) => {
   await usersLeaguesModel.deleteByLeague(leagueId)
   await usersLeaguesModel.replace(usersLeagues)
 
-  const currentUsersLeagues = await usersLeaguesModel.fetchByLeague({
-    id: leagueId
-  })
+  const existingInvitedLeagueUsers = users.filter(
+    (user) =>
+      user?.name &&
+      !user.owner &&
+      user?.status === USERS_LEAGUES_STATUSES.INVITED
+  )
 
-  const currentUsersIds = currentUsersLeagues.map(({ userId }) => userId)
-  const addedUsersIds = difference(existingUsersIds, currentUsersIds)
+  const existingUsersToBeInvited = resendInvitations
+    ? [...existingNonLeagueUsers, ...existingInvitedLeagueUsers]
+    : existingNonLeagueUsers
 
-  const addedUsers = await usersModel.fetchAll({ id: addedUsersIds })
-
-  addedUsers
-    .filter(({ owner }) => !owner)
-    .map((user) => {
-      const token = jwt.sign(
-        { email: user.email, leagueId },
-        process.env.AUTH_TOKEN_SECRET,
-        {
-          expiresIn: process.env.AUTH_TOKEN_EXPIRES_IN
-        }
-      )
-
-      sendLeagueInvitationEmail({
-        name: user.name,
-        email: user.email,
-        league: name,
-        owner: res.locals.jwt.user.name,
-        visibility,
-        token
-      })
-    })
-
-  const nonExistingUsers = users.filter((user) => !user?.id)
-  nonExistingUsers.map(async (user) => {
+  existingUsersToBeInvited.map((user) => {
     const token = jwt.sign(
-      { email: user, leagueId },
+      { email: user.email, leagueId },
       process.env.AUTH_TOKEN_SECRET,
       {
         expiresIn: process.env.AUTH_TOKEN_EXPIRES_IN
       }
     )
 
-    await leaguesInvitationsModel.replace({ email: user, leagueId })
+    // console.log('send existing users league invitation email', {
+    //   name: user.name,
+    //   email: user.email,
+    //   league: name,
+    //   owner: res.locals.jwt.user.name,
+    //   visibility,
+    //   token
+    // })
 
-    sendAnonymousLeagueInvitationEmail({
-      email: user,
+    sendLeagueInvitationEmail({
+      name: user.name,
+      email: user.email,
       league: name,
       owner: res.locals.jwt.user.name,
       visibility,
       token
+    })
+  })
+
+  const nonExistingUsers = users.filter((user) => !user?.name && !user.owner)
+  const nonExistingUsersEmails = nonExistingUsers.map(
+    (user) => user?.email || user
+  )
+  const nonExistingUninvitedUsers = nonExistingUsers.filter(
+    (user) =>
+      !user?.status || user?.status === LEAGUES_INVITATIONS_STATUSES.PENDING
+  )
+  const nonExistingUsersToBeInvited = resendInvitations
+    ? nonExistingUsers
+    : nonExistingUninvitedUsers
+
+  const leaguesInvitationsEmails = (
+    await leaguesInvitationsModel.fetchAll({ leagueId })
+  ).map(({ email }) => email)
+  const leaguesInvitationsToBeDeleted = difference(
+    leaguesInvitationsEmails,
+    nonExistingUsersEmails
+  )
+
+  await leaguesInvitationsModel.batchDeleteByLeagueAndEmails({
+    leagueId,
+    emails: leaguesInvitationsToBeDeleted
+  })
+
+  nonExistingUsersToBeInvited.map(async (user) => {
+    const token = jwt.sign(
+      { email: user?.email || user, leagueId },
+      process.env.AUTH_TOKEN_SECRET,
+      {
+        expiresIn: process.env.AUTH_TOKEN_EXPIRES_IN
+      }
+    )
+
+    if (!user?.email) {
+      await leaguesInvitationsModel.replace({ email: user, leagueId })
+    }
+
+    await sendAnonymousLeagueInvitationEmail({
+      email: user?.email || user,
+      league: name,
+      owner: res.locals.jwt.user.name,
+      visibility,
+      token
+    })
+
+    await leaguesInvitationsModel.replace({
+      email: user?.email || user,
+      leagueId,
+      status: LEAGUES_INVITATIONS_STATUSES.SENT
     })
   })
 
