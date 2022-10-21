@@ -16,6 +16,7 @@ const appendUsersLeagues = ({ leagueId, users, ownerId }) => {
       .map((user) => ({
         userId: user.id,
         leagueId,
+        status: user.status,
         owner: false
       }))
 

@@ -31,6 +31,7 @@ const fetchAll = async ({
   const query = knex(TABLE_NAME)
     .select([
       `${TABLE_NAME}.*`,
+      'usersLeagues.id AS usersLeaguesId',
       'usersLeagues.userId AS usersLeaguesUserId',
       'usersLeagues.points AS usersLeaguesPoints',
       'usersLeagues.owner AS usersLeaguesOwner',
@@ -71,6 +72,7 @@ const fetchById = async (id) => {
   const rows = await knex(TABLE_NAME)
     .select([
       `${TABLE_NAME}.*`,
+      'usersLeagues.id AS usersLeaguesId',
       'usersLeagues.userId AS usersLeaguesUserId',
       'usersLeagues.points AS usersLeaguesPoints',
       'usersLeagues.owner AS usersLeaguesOwner',
@@ -103,7 +105,9 @@ const appendOwnerIdSubQuery = (leagueId) => {
 const appendEntities = (rows) =>
   pipe(
     reduce((result, row) => {
+      // console.log(row)
       const JOIN_FIELDS = [
+        'usersLeaguesId',
         'usersLeaguesUserId',
         'usersLeaguesPoints',
         'usersLeaguesOwner',
@@ -115,6 +119,7 @@ const appendEntities = (rows) =>
       ]
 
       const user = {
+        usersLeaguesId: row.usersLeaguesId,
         points: row.usersLeaguesPoints,
         owner: row.usersLeaguesOwner,
         status: row.usersLeaguesStatus,
