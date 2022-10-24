@@ -25,7 +25,7 @@ const columns = [
   'awayTeamName'
 ]
 
-const MATCH_STATUS_QUERY = `
+export const MATCH_STATUS_QUERY = `
   IF(
     ${DB_DEFAULT_DATE_FN} > DATE_ADD(date, INTERVAL 240 MINUTE),
     "finished",
