@@ -209,10 +209,31 @@ const joinLeague = async (req, res) => {
   return res.sendStatus(200)
 }
 
+const approveUsers = async (req, res) => {
+  const leagueId = parseInt(req.params.leagueId)
+  const { users } = req.body
+
+  const league = await leaguesModel.fetchById(leagueId)
+
+  if (!league) {
+    return res.sendStatus(404)
+  }
+
+  const usersLeagues = appendUsersLeagues({
+    leagueId,
+    users
+  })
+
+  await usersLeaguesModel.replace(usersLeagues)
+
+  return res.sendStatus(200)
+}
+
 export {
   inviteUsers,
   acceptInvitation,
   deleteUser,
   updateInvitations,
-  joinLeague
+  joinLeague,
+  approveUsers
 }
