@@ -45,7 +45,6 @@ const fetchByLeague = async ({ leagueId, status }) => {
         'usersLeagues.leagueId'
       )
     })
-    // .leftJoin('guesses', 'guesses.userId', `${TABLE_NAME}.id`)
     .where(appendWhere({ leagueId, status }))
     .groupBy(`${TABLE_NAME}.id`)
     .orderBy('points', 'desc')
