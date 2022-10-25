@@ -1,12 +1,13 @@
+const { pipe, filter, reduce, pick } = lodash
 import lodash from 'lodash/fp'
 import { TABLE_FIELDS } from '../../models/guesses.model'
-const { pipe, filter, reduce, pick } = lodash
+import { MATCH_STATUSES } from '../matches/matches.constants'
 
 import { guessPointsStrategy } from './guessesReport.strategy'
 
 export const calculateGuessesPoints = (guesses) =>
   pipe(
-    filter(({ match }) => match.status === 'finished'),
+    filter(({ match }) => match.status === MATCH_STATUSES.FINISHED),
     reduce((result, guess) => {
       const points = guessPointsStrategy[guess.league.pointsStrategy](guess)
 
