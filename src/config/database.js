@@ -11,6 +11,9 @@ if (NODE_ENV === 'memory') {
 } else {
   await database.raw(`SET GLOBAL time_zone = '-3:00';`)
   await database.raw(`SET SESSION time_zone = '-3:00';`)
+  await database.raw(
+    `SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));`
+  )
 }
 
 export default database
