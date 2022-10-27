@@ -14,10 +14,11 @@ const getGeneralStats = async (req, res) => {
 }
 
 const getUnprocessedGuesses = async (req, res) => {
-  const result = await dashboardModel.fetchUnprocessedGuesses()
+  const { leagueId } = req.query
+  const result = await dashboardModel.fetchUnprocessedGuesses({ leagueId })
 
   return res.json({
-    data: result?.unprocessedGuesses || 0
+    data: result
   })
 }
 

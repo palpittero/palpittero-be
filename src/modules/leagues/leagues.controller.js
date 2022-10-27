@@ -29,6 +29,7 @@ const getLeagues = async (req, res) => {
 
 const getLeague = async (req, res) => {
   const id = parseInt(req.params.id)
+  console.log({ id })
   const league = await leaguesModel.fetchById(id)
 
   if (!league) {
