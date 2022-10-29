@@ -106,8 +106,12 @@ const hasSpottedWinnerWrongGoals = (guess) => {
   )
 }
 
-const hasSpottedAnyTeamGoals = (guess) =>
-  hasSpottedWinnerGoals(guess) || hasSpottedLoserGoals(guess)
+const hasSpottedAnyTeamGoals = (guess) => {
+  return (
+    guess.homeTeamRegularTimeGoals === guess.match.regularTimeHomeTeamGoals ||
+    guess.awayTeamRegularTimeGoals === guess.match.regularTimeAwayTeamGoals
+  )
+}
 
 const calculateGuessPointsGrouped = (guess) => {
   if (hasSpottedExactScore(guess)) {
