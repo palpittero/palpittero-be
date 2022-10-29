@@ -106,17 +106,22 @@ const hasSpottedWinnerWrongGoals = (guess) => {
   )
 }
 
+const hasSpottedAnyTeamGoals = (guess) =>
+  hasSpottedWinnerGoals(guess) || hasSpottedLoserGoals(guess)
+
 const calculateGuessPointsGrouped = (guess) => {
   if (hasSpottedExactScore(guess)) {
-    return 4
+    return 5
   } else if (
     hasSpottedWrongScoreDraw(guess) ||
     hasSpottedWinnerAndGoals(guess)
   ) {
-    return 3
+    return 4
   } else if (hasSpottedLoserGoalsAndWinner(guess)) {
-    return 2
+    return 3
   } else if (hasSpottedWinnerWrongGoals(guess)) {
+    return 2
+  } else if (hasSpottedAnyTeamGoals(guess)) {
     return 1
   }
 
