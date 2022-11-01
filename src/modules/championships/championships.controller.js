@@ -50,7 +50,7 @@ const createChampionship = async (req, res) => {
     roundsType
   })
 
-  await roundsModel.replace(championshipRounds)
+  await roundsModel.batchInsert(championshipRounds)
 
   const teamsChampionships = appendTeamsChampionships({
     championshipId: id,
@@ -82,31 +82,48 @@ const updateChampionship = async (req, res) => {
   const currentRounds = await roundsModel.fetchByChampionship({
     championshipId: id
   })
-  const currentRoundsIds = currentRounds.map(({ id }) => id)
-  const roundsIds = rounds.filter(({ id }) => id).map(({ id }) => id)
-  const removedRoundsIds = difference(currentRoundsIds, roundsIds)
 
-  await roundsModel.batchDelete({ columnName: 'id', values: removedRoundsIds })
+  const existingRoundsIds = currentRounds.map(({ id }) => id)
+  const roundsToUpdate = rounds.filter(({ id }) => id)
+  const roundsIdsToUpdate = roundsToUpdate.map(({ id }) => id)
+  const roundsIdsToRemove = difference(existingRoundsIds, roundsIdsToUpdate)
+  const roundsToInsert = rounds.filter(({ id }) => !id)
 
-  const championshipRounds = appendChampionshipRounds({
-    championshipId: id,
-    rounds,
-    roundsType: CHAMPIONSHIPS_ROUNDS.DETAILED
-  })
+  if (roundsIdsToRemove.length > 0) {
+    await roundsModel.batchDelete({
+      columnName: 'id',
+      values: roundsIdsToRemove
+    })
+  }
 
-  await roundsModel.replace(championshipRounds)
+  if (roundsToInsert.length > 0) {
+    const newChampionshipRounds = appendChampionshipRounds({
+      championshipId: id,
+      rounds: roundsToInsert,
+      roundsType: CHAMPIONSHIPS_ROUNDS.DETAILED
+    })
+
+    await roundsModel.batchInsert(newChampionshipRounds)
+  }
+
+  if (roundsToUpdate.length > 0) {
+    const updatedChampionshipRounds = appendChampionshipRounds({
+      championshipId: id,
+      rounds: roundsToUpdate,
+      roundsType: CHAMPIONSHIPS_ROUNDS.DETAILED
+    })
+
+    updatedChampionshipRounds.map(
+      async (round) => await roundsModel.update(round)
+    )
+  }
 
   const teamsChampionships = appendTeamsChampionships({
     championshipId: id,
     teams
   })
 
-  await teamsChampionshipsModel.batchDelete({
-    columnName: 'championshipId',
-    values: [id]
-  })
-
-  await teamsChampionshipsModel.batchInsert(teamsChampionships)
+  await teamsChampionshipsModel.replace(teamsChampionships)
 
   return res.json({
     data: id

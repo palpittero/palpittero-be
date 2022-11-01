@@ -37,6 +37,25 @@ const createMatch = async (req, res) => {
   res.status(200).json({ data: id })
 }
 
+const createMatches = async (req, res) => {
+  const { roundId, details } = req.body
+
+  const matches = details.map(({ homeTeamId, awayTeamId, date }) => ({
+    homeTeamId,
+    awayTeamId,
+    roundId,
+    date: new Date(date)
+  }))
+
+  console.log(matches)
+
+  // const parsedDate = new Date(date)
+
+  await matchesModel.batchInsert(matches)
+
+  res.status(200).json()
+}
+
 const updateMatch = async (req, res) => {
   const id = parseInt(req.params.id)
   const match = await matchesModel.fetchById(id)
@@ -112,6 +131,7 @@ export {
   getMatches,
   getMatch,
   createMatch,
+  createMatches,
   updateMatch,
   deleteMatch,
   deleteMatches
