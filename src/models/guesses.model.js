@@ -28,7 +28,7 @@ const MATCH_STATUS_QUERY = `
     ${DB_DEFAULT_DATE_FN} > DATE_ADD(date, INTERVAL 240 MINUTE),
     "finished",
     IF(
-      ${DB_DEFAULT_DATE_FN} < date AND DATE_ADD(${DB_DEFAULT_DATE_FN}, INTERVAL 60 MINUTE) > date,
+      ${DB_DEFAULT_DATE_FN} < date AND DATE_ADD(${DB_DEFAULT_DATE_FN}, INTERVAL 15 MINUTE) > date,
       "preparation",
       IF (
         ${DB_DEFAULT_DATE_FN} < DATE_ADD(date, INTERVAL 240 MINUTE) AND ${DB_DEFAULT_DATE_FN} > date,
@@ -54,7 +54,7 @@ const fetchById = async (id) => {
       'awayTeam.name AS awayTeamName',
       'awayTeam.badge AS awayTeamBadge',
       knex.raw(
-        `IIF(DATETIME('now') > DATETIME(match.date, '+240 minutes'), "finished", IIF(DATETIME('now') < date AND DATETIME(DATETIME('now'), '+60 minutes') > matchdate, "preparation", "scheduled")) AS status`
+        `IIF(DATETIME('now') > DATETIME(match.date, '+240 minutes'), "finished", IIF(DATETIME('now') < date AND DATETIME(DATETIME('now'), '+15 minutes') > matchdate, "preparation", "scheduled")) AS status`
       )
     ])
     .join('users AS user', 'user.id', `${TABLE_NAME}.userId`)
