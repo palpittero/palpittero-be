@@ -34,6 +34,10 @@ const authenticate = async (req, res) => {
     return res.sendStatus(401)
   }
 
+  if (user.status !== STATUS.ACTIVE) {
+    return res.sendStatus(403)
+  }
+
   const { accessToken, refreshToken } = generateTokens(user)
 
   res.json({
@@ -177,11 +181,8 @@ const activateAccount = async (req, res) => {
     ({ leagueId }) => leagueId
   )
 
-  console.log({ leaguesInvitationsLeaguesIds })
-
   if (leaguesInvitations.length > 0) {
     const leagues = await leaguesModel.fetchByIds(leaguesInvitationsLeaguesIds)
-    console.log(leagues)
 
     leagues.map(async (league) => {
       const visibility = league.private
