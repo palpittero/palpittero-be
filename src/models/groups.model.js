@@ -22,7 +22,7 @@ const fetchByChampionship = async ({ championshipId }) => {
       'teamsChampionships.groupId',
       `${TABLE_NAME}.id`
     )
-    .innerJoin('teams', 'teams.id', 'teamsChampionships.teamId')
+    .leftJoin('teams', 'teams.id', 'teamsChampionships.teamId')
     .where(appendWhere({ championshipId }))
 
   return appendEntities(rows)
