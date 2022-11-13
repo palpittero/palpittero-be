@@ -52,10 +52,13 @@ export default (tableName, columns = []) => {
     return knex(tableName).del().whereIn(columnName, values)
   }
 
-  const batchUpdate = (rows) => {
+  const batchUpdate = (rows, where) => {
     return knex.transaction((trx) => {
       const queries = rows.map(({ id, ...row }) =>
-        knex(tableName).update(row).where({ id }).transacting(trx)
+        knex(tableName)
+          .update(row)
+          .where(where || { id })
+          .transacting(trx)
       )
 
       Promise.all(queries).then(trx.commit).catch(trx.rollback)

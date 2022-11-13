@@ -7,6 +7,7 @@ import omitBy from 'lodash/fp/omitBy'
 import isNil from 'lodash/fp/isNil'
 import values from 'lodash/fp/values'
 import uniqBy from 'lodash/fp/uniqBy'
+import orderBy from 'lodash/fp/orderBy'
 import { STATUS } from '../shared/constants'
 
 const TABLE_NAME = 'championships'
@@ -21,10 +22,15 @@ const fetchAll = async () => {
       'teams.name AS teamName',
       'teams.badge AS teamBadge',
       'teamsChampionships.championshipId',
+      'teamsChampionships.groupId AS teamGroupId',
       'rounds.id AS roundId',
       'rounds.code AS roundCode',
       'rounds.name AS roundName',
-      'rounds.type AS roundType'
+      'rounds.type AS roundType',
+
+      'groups.id AS groupId',
+      'groups.code AS groupCode',
+      'groups.name AS groupName'
     ])
     .leftJoin(
       'teamsChampionships',
@@ -33,9 +39,12 @@ const fetchAll = async () => {
     )
     .leftJoin('teams', 'teams.id', `teamsChampionships.teamId`)
     .leftJoin('rounds', 'rounds.championshipId', `${TABLE_NAME}.id`)
+    .leftJoin('groups', 'groups.championshipId', `${TABLE_NAME}.id`)
     .where({
       [`${TABLE_NAME}.status`]: STATUS.ACTIVE
     })
+
+  // console.log(JSON.stringify(rows))
 
   return appendEntities(rows)
 }
@@ -87,7 +96,9 @@ const appendEntities = (rows) =>
   pipe(
     reduce((result, row) => {
       const TEAMS_FIELDS = ['teamId', 'teamName', 'teamBadge', 'championshipId']
+      const TEAMS_CHAMPIONSHIPS_FIELDS = ['teamGroupId']
       const ROUNDS_FIELDS = ['roundId', 'roundCode', 'roundName', 'roundType']
+      const GROUPS_FIELDS = ['groupId', 'groupCode', 'groupName']
 
       const team = {
         id: row.teamId,
@@ -102,6 +113,12 @@ const appendEntities = (rows) =>
         type: row.roundType
       }
 
+      const group = {
+        id: row.groupId,
+        code: row.groupCode,
+        name: row.groupName
+      }
+
       const teams = row.championshipId
         ? [...(result[row.id]?.teams || []), team]
         : result[row.id]?.teams || []
@@ -110,12 +127,36 @@ const appendEntities = (rows) =>
         ? [...(result[row.id]?.rounds || []), round]
         : result[row.id]?.rounds || []
 
+      const groups = row.groupId
+        ? [...(result[row.id]?.groups || []), group].map((group) => {
+            const teams = uniqBy('id', [
+              ...(group.teams || []),
+              ...(row.teamGroupId === group.id ? [team] : [])
+            ])
+
+            return {
+              ...group,
+              teams
+            }
+          })
+        : result[row.id]?.groups || []
+
       return {
         ...result,
         [row.id]: {
-          ...omit([...TEAMS_FIELDS, ...ROUNDS_FIELDS], row),
+          ...omit(
+            [
+              ...TEAMS_FIELDS,
+              ...ROUNDS_FIELDS,
+              ...GROUPS_FIELDS,
+              ...TEAMS_CHAMPIONSHIPS_FIELDS
+            ],
+            row
+          ),
           teams: uniqBy('id', teams),
-          rounds: uniqBy('id', rounds)
+          rounds: uniqBy('id', rounds),
+          groups: orderBy('code', 'asc', uniqBy('id', groups)),
+          hasGroups: groups.length > 0
         }
       }
     }, {}),
