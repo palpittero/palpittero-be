@@ -6,7 +6,8 @@ import {
 const appendTeamsChampionships = ({ championshipId, teams }) =>
   teams.map((team) => ({
     championshipId,
-    teamId: team.id
+    teamId: team.id,
+    groupId: team.groupId || null
   }))
 
 const appendChampionshipRoundsStrategy = {
@@ -33,4 +34,17 @@ const appendChampionshipRoundsStrategy = {
 const appendChampionshipRounds = ({ championshipId, rounds, roundsType }) =>
   appendChampionshipRoundsStrategy[roundsType]({ championshipId, rounds })
 
-export { appendTeamsChampionships, appendChampionshipRounds }
+const appendChampionshipGroups = ({ championshipId, groups }) =>
+  groups.map(({ id, name, teams }, index) => ({
+    id,
+    championshipId,
+    name,
+    teams,
+    code: index + 1
+  }))
+
+export {
+  appendTeamsChampionships,
+  appendChampionshipRounds,
+  appendChampionshipGroups
+}

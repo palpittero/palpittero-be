@@ -35,7 +35,8 @@ const fetchByChampionship = async (championshipId) => {
       `${TABLE_NAME}.*`,
       'countries.id AS countryId',
       'countries.name AS countryName',
-      'countries.flag AS countryFlag'
+      'countries.flag AS countryFlag',
+      'teamsChampionships.groupId'
     ])
     .leftJoin('countries', 'countries.id', `${TABLE_NAME}.countryId`)
     .join('teamsChampionships', 'teamsChampionships.teamId', `${TABLE_NAME}.id`)
@@ -44,6 +45,31 @@ const fetchByChampionship = async (championshipId) => {
 
   return appendEntities(rows)
 }
+
+const fetchByChampionships = async (championshipsIds) => {
+  const rows = await knex(TABLE_NAME)
+    .select([
+      `${TABLE_NAME}.*`,
+      'countries.id AS countryId',
+      'countries.name AS countryName',
+      'countries.flag AS countryFlag',
+      'teamsChampionships.groupId'
+    ])
+    .leftJoin('countries', 'countries.id', `${TABLE_NAME}.countryId`)
+    .join('teamsChampionships', 'teamsChampionships.teamId', `${TABLE_NAME}.id`)
+    .where(appendWhere({ status: STATUS.ACTIVE }))
+    .whereIn('championshipId', championshipsIds)
+    .groupBy(`${TABLE_NAME}.id`)
+
+  return appendEntities(rows)
+}
+
+// const fetchByGroupsIds = async ({ groupsIds }) => {
+//   const rows = await knex(TABLE_NAME)
+//     .select(['teams.*']).whereIn('groupId', groupsIds)
+
+//   return rows
+// }
 
 const appendEntities = (rows) => {
   const COUNTRIES_FIELDS = ['countryId', 'countryName', 'countryFlag']
@@ -75,6 +101,7 @@ const teamsModel = baseModel(TABLE_NAME, columns)
 export default {
   ...teamsModel,
   fetchAll,
-  fetchByChampionship
+  fetchByChampionship,
+  fetchByChampionships
 }
 //

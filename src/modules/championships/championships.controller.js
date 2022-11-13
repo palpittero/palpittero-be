@@ -3,9 +3,11 @@ import teamsChampionshipsModel from '../../models/teamsChampionships.model'
 import roundsModel from '../../models/rounds.model'
 import teamsModel from '../../models/teams.model'
 import matchesModel from '../../models/matches.model'
+import groupsModel from '../../models/groups.model'
 import {
   appendTeamsChampionships,
-  appendChampionshipRounds
+  appendChampionshipRounds,
+  appendChampionshipGroups
 } from '../teamsChampionships/teamsChampionships.helpers'
 import minBy from 'lodash/fp/minBy'
 import maxBy from 'lodash/fp/maxBy'
@@ -37,7 +39,7 @@ const getChampionship = async (req, res) => {
 }
 
 const createChampionship = async (req, res) => {
-  const { name, year, teams, rounds, roundsType } = req.body
+  const { name, year, teams, rounds, roundsType, groups, hasGroups } = req.body
 
   const [id] = await championshipsModel.insert({
     name,
@@ -52,19 +54,42 @@ const createChampionship = async (req, res) => {
 
   await roundsModel.batchInsert(championshipRounds)
 
-  const teamsChampionships = appendTeamsChampionships({
-    championshipId: id,
-    teams
-  })
+  if (hasGroups) {
+    const championshipGroups = appendChampionshipGroups({
+      championshipId: id,
+      groups
+    })
 
-  await teamsChampionshipsModel.replace(teamsChampionships)
+    championshipGroups.map(async ({ teams, ...group }) => {
+      const [groupId] = await groupsModel.insert(group)
 
-  res.status(201).json({ data: id })
+      const groupTeams = teams.map((team) => ({
+        ...team,
+        groupId
+      }))
+
+      const teamsChampionships = appendTeamsChampionships({
+        championshipId: id,
+        teams: groupTeams
+      })
+
+      await teamsChampionshipsModel.replace(teamsChampionships)
+    })
+  } else {
+    const teamsChampionships = appendTeamsChampionships({
+      championshipId: id,
+      teams
+    })
+
+    await teamsChampionshipsModel.replace(teamsChampionships)
+  }
+
+  return res.status(201).json({ data: id })
 }
 
 const updateChampionship = async (req, res) => {
   const id = parseInt(req.params.id)
-  const { name, year, teams, rounds, status } = req.body
+  const { name, year, teams, rounds, groups, hasGroups, status } = req.body
 
   const championship = await championshipsModel.fetchById(id)
 
@@ -118,9 +143,82 @@ const updateChampionship = async (req, res) => {
     )
   }
 
+  if (hasGroups) {
+    const currentGroups = await groupsModel.fetchByChampionship({
+      championshipId: id
+    })
+
+    const existingGroupsIds = currentGroups.map(({ id }) => id)
+    const groupsToUpdate = groups.filter(({ id }) => id)
+    const groupsIdsToUpdate = groupsToUpdate.map(({ id }) => id)
+    const groupsIdsToRemove = difference(existingGroupsIds, groupsIdsToUpdate)
+    const groupsToInsert = groups.filter(({ id }) => !id)
+
+    if (groupsIdsToRemove.length > 0) {
+      await groupsModel.batchDelete({
+        columnName: 'id',
+        values: groupsIdsToRemove
+      })
+
+      await teamsChampionshipsModel.unlinkTeamGroups(groupsIdsToRemove)
+    }
+
+    if (groupsToInsert.length > 0) {
+      const newChampionshipGroups = appendChampionshipGroups({
+        championshipId: id,
+        groups: groupsToInsert
+      })
+
+      newChampionshipGroups.map(async ({ teams, ...group }) => {
+        const [groupId] = await groupsModel.insert(group)
+
+        const groupTeams = teams.map((team) => ({
+          ...team,
+          groupId
+        }))
+
+        const teamsChampionships = appendTeamsChampionships({
+          championshipId: id,
+          teams: groupTeams
+        })
+
+        await teamsChampionshipsModel.replace(teamsChampionships)
+      })
+    }
+
+    if (groupsToUpdate.length > 0) {
+      const updatedChampionshipGroups = appendChampionshipGroups({
+        championshipId: id,
+        groups: groupsToUpdate
+      })
+
+      updatedChampionshipGroups.map(async ({ teams, ...group }) => {
+        await groupsModel.update(group)
+
+        const groupTeams = teams.map((team) => ({
+          ...team,
+          groupId: group.id
+        }))
+
+        const teamsChampionships = appendTeamsChampionships({
+          championshipId: id,
+          teams: groupTeams
+        })
+
+        await teamsChampionshipsModel.replace(teamsChampionships)
+      })
+    }
+  } else {
+    await groupsModel.batchDelete({
+      columnName: 'championshipId',
+      values: [id]
+    })
+  }
+
   const teamsChampionships = appendTeamsChampionships({
     championshipId: id,
-    teams
+    teams,
+    groups
   })
 
   await teamsChampionshipsModel.replace(teamsChampionships)
@@ -195,6 +293,24 @@ const getChampionshipRounds = async (req, res) => {
   })
 }
 
+const getChampionshipGroups = async (req, res) => {
+  const { id } = req.params
+
+  const championship = await championshipsModel.fetchById(id)
+
+  if (!championship) {
+    return res.sendStatus(404)
+  }
+
+  const championshipGroups = await groupsModel.fetchByChampionship({
+    championshipId: id
+  })
+
+  return res.json({
+    data: orderBy('code', 'asc', championshipGroups)
+  })
+}
+
 const getChampionshipTeams = async (req, res) => {
   const { id } = req.params
 
@@ -219,5 +335,6 @@ export {
   deleteChampionship,
   deleteChampionships,
   getChampionshipRounds,
+  getChampionshipGroups,
   getChampionshipTeams
 }

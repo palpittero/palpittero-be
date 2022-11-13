@@ -54,6 +54,8 @@ const fetchById = async (id) => {
       'round.name AS roundName',
       'round.code AS roundCode',
       'round.type AS roundType',
+      'group.id AS groupId',
+      'group.name AS groupName',
       'championship.id AS championshipId',
       'championship.name AS championshipName',
       'championship.year AS championshipYear',
@@ -62,7 +64,13 @@ const fetchById = async (id) => {
     ])
     .join('teams AS homeTeam', 'homeTeam.id', `${TABLE_NAME}.homeTeamId`)
     .join('teams AS awayTeam', 'awayTeam.id', `${TABLE_NAME}.awayTeamId`)
+    .join(
+      'teamsChampionships AS homeTeamChampionship',
+      'homeTeam.id',
+      'homeTeamChampionship.teamId'
+    )
     .join('rounds AS round', 'round.id', `${TABLE_NAME}.roundId`)
+    .join('groups AS group', 'group.id', `homeTeamChampionship.groupId`)
     .join(
       'championships AS championship',
       'round.championshipId',
@@ -84,6 +92,8 @@ const fetchAll = async ({ status, date, roundId }) => {
       'round.name AS roundName',
       'round.code AS roundCode',
       'round.type AS roundType',
+      'group.id AS groupId',
+      'group.name AS groupName',
       'championship.id AS championshipId',
       'championship.name AS championshipName',
       'championship.year AS championshipYear',
@@ -92,7 +102,13 @@ const fetchAll = async ({ status, date, roundId }) => {
     ])
     .join('teams AS homeTeam', 'homeTeam.id', `${TABLE_NAME}.homeTeamId`)
     .join('teams AS awayTeam', 'awayTeam.id', `${TABLE_NAME}.awayTeamId`)
+    .join(
+      'teamsChampionships AS homeTeamChampionship',
+      'homeTeam.id',
+      'homeTeamChampionship.teamId'
+    )
     .join('rounds AS round', 'round.id', `${TABLE_NAME}.roundId`)
+    .join('groups AS group', 'group.id', `homeTeamChampionship.groupId`)
     .join(
       'championships AS championship',
       'round.championshipId',
@@ -118,6 +134,8 @@ const fetchByChampionship = async ({ championshipId }) => {
       'round.name AS roundName',
       'round.code AS roundCode',
       'round.type AS roundType',
+      'group.id AS groupId',
+      'group.name AS groupName',
       'championship.id AS championshipId',
       'championship.name AS championshipName',
       'championship.year AS championshipYear',
@@ -126,7 +144,13 @@ const fetchByChampionship = async ({ championshipId }) => {
     ])
     .join('teams AS homeTeam', 'homeTeam.id', `${TABLE_NAME}.homeTeamId`)
     .join('teams AS awayTeam', 'awayTeam.id', `${TABLE_NAME}.awayTeamId`)
+    .join(
+      'teamsChampionships AS homeTeamChampionship',
+      'homeTeam.id',
+      'homeTeamChampionship.teamId'
+    )
     .join('rounds AS round', 'round.id', `${TABLE_NAME}.roundId`)
+    .join('groups AS group', 'group.id', `homeTeamChampionship.groupId`)
     .join(
       'championships AS championship',
       'round.championshipId',
@@ -156,7 +180,9 @@ const appendEntities = (rows) => {
     'championshipId',
     'championshipName',
     'championshipYear',
-    'championshipStatus'
+    'championshipStatus',
+    'groupId',
+    'groupName'
   ]
 
   return rows.reduce((result, row) => {
@@ -165,6 +191,12 @@ const appendEntities = (rows) => {
       {
         ...omit(JOIN_FIELDS, row),
         date: new Date(row.date),
+        group: row.groupId
+          ? {
+              id: row.groupId,
+              name: row.groupName
+            }
+          : null,
         homeTeam: {
           id: row.homeTeamId,
           name: row.homeTeamName,
@@ -183,7 +215,8 @@ const appendEntities = (rows) => {
             id: row.championshipId,
             name: row.championshipName,
             year: row.championshipYear,
-            status: row.championshipStatus
+            status: row.championshipStatus,
+            hasGroups: !!row.groupId
           },
           type: row.roundType
         }

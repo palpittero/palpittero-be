@@ -1,11 +1,39 @@
+import uniq from 'lodash/fp/uniq'
+import compact from 'lodash/fp/compact'
+import pick from 'lodash/fp/pick'
+
 import matchesModel from '../../models/matches.model'
+import teamsModel from '../../models/teams.model'
 
 const getMatches = async (req, res) => {
   const { status, date, roundId } = req.query
   const matches = await matchesModel.fetchAll({ status, date, roundId })
 
+  const championshipsIds = uniq(
+    compact(matches.map(({ round }) => round?.championship?.id))
+  )
+
+  const championshipsTeams = await teamsModel.fetchByChampionships(
+    championshipsIds
+  )
+
+  const parsedMatches = matches.map((match) => {
+    const teams = championshipsTeams.filter(
+      ({ groupId }) => match.group?.id === groupId
+    )
+
+    return {
+      ...match,
+      group: {
+        ...match.group,
+        teams: teams.map(pick(['id', 'name', 'badge']))
+      }
+    }
+  })
+
   res.json({
-    data: matches
+    data: parsedMatches
+    // championshipsTeams
   })
 }
 
@@ -46,10 +74,6 @@ const createMatches = async (req, res) => {
     roundId,
     date: new Date(date)
   }))
-
-  console.log(matches)
-
-  // const parsedDate = new Date(date)
 
   await matchesModel.batchInsert(matches)
 
