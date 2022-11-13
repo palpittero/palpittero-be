@@ -44,8 +44,6 @@ const fetchAll = async () => {
       [`${TABLE_NAME}.status`]: STATUS.ACTIVE
     })
 
-  // console.log(JSON.stringify(rows))
-
   return appendEntities(rows)
 }
 
@@ -115,8 +113,8 @@ const appendEntities = (rows) =>
 
       const group = {
         id: row.groupId,
-        code: row.groupCode,
-        name: row.groupName
+        name: row.groupName,
+        code: row.groupCode
       }
 
       const teams = row.championshipId

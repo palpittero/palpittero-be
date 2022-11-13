@@ -29,7 +29,7 @@ const getLeagues = async (req, res) => {
 
 const getLeague = async (req, res) => {
   const id = parseInt(req.params.id)
-  console.log({ id })
+
   const league = await leaguesModel.fetchById(id)
 
   if (!league) {
@@ -225,15 +225,6 @@ const updateLeague = async (req, res) => {
         expiresIn: process.env.AUTH_TOKEN_EXPIRES_IN
       }
     )
-
-    // console.log('send existing users league invitation email', {
-    //   name: user.name,
-    //   email: user.email,
-    //   league: name,
-    //   owner: res.locals.jwt.user.name,
-    //   visibility,
-    //   token
-    // })
 
     sendLeagueInvitationEmail({
       name: user.name,

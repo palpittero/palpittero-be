@@ -60,21 +60,30 @@ const createChampionship = async (req, res) => {
       groups
     })
 
-    championshipGroups.map(async ({ teams, ...group }) => {
-      const [groupId] = await groupsModel.insert(group)
+    let teamsChampionships = []
 
-      const groupTeams = teams.map((team) => ({
-        ...team,
-        groupId
-      }))
+    await Promise.all(
+      championshipGroups.map(async ({ teams, ...group }) => {
+        const [groupId] = await groupsModel.insert(group)
 
-      const teamsChampionships = appendTeamsChampionships({
-        championshipId: id,
-        teams: groupTeams
+        const groupTeams = teams.map((team) => ({
+          ...team,
+          groupId
+        }))
+
+        teamsChampionships = [
+          ...teamsChampionships,
+          ...appendTeamsChampionships({
+            championshipId: id,
+            teams: groupTeams
+          })
+        ]
       })
+    )
 
+    if (teamsChampionships.length > 0) {
       await teamsChampionshipsModel.replace(teamsChampionships)
-    })
+    }
   } else {
     const teamsChampionships = appendTeamsChampionships({
       championshipId: id,
@@ -169,21 +178,30 @@ const updateChampionship = async (req, res) => {
         groups: groupsToInsert
       })
 
-      newChampionshipGroups.map(async ({ teams, ...group }) => {
-        const [groupId] = await groupsModel.insert(group)
+      let teamsChampionshipsToInsert = []
 
-        const groupTeams = teams.map((team) => ({
-          ...team,
-          groupId
-        }))
+      await Promise.all(
+        newChampionshipGroups.map(async ({ teams, ...group }) => {
+          const [groupId] = await groupsModel.insert(group)
 
-        const teamsChampionships = appendTeamsChampionships({
-          championshipId: id,
-          teams: groupTeams
+          const groupTeams = teams.map((team) => ({
+            ...team,
+            groupId
+          }))
+
+          teamsChampionshipsToInsert = [
+            ...teamsChampionshipsToInsert,
+            ...appendTeamsChampionships({
+              championshipId: id,
+              teams: groupTeams
+            })
+          ]
         })
+      )
 
-        await teamsChampionshipsModel.replace(teamsChampionships)
-      })
+      if (teamsChampionshipsToInsert.length > 0) {
+        await teamsChampionshipsModel.replace(teamsChampionshipsToInsert)
+      }
     }
 
     if (groupsToUpdate.length > 0) {
@@ -192,36 +210,47 @@ const updateChampionship = async (req, res) => {
         groups: groupsToUpdate
       })
 
+      let teamsChampionships = []
+
       updatedChampionshipGroups.map(async ({ teams, ...group }) => {
-        await groupsModel.update(group)
+        if (teams.length === 0) {
+          await groupsModel.delete({ id: group.id })
+        } else {
+          await groupsModel.update(group)
 
-        const groupTeams = teams.map((team) => ({
-          ...team,
-          groupId: group.id
-        }))
+          const groupTeams = teams.map((team) => ({
+            ...team,
+            groupId: group.id
+          }))
 
-        const teamsChampionships = appendTeamsChampionships({
-          championshipId: id,
-          teams: groupTeams
-        })
-
-        await teamsChampionshipsModel.replace(teamsChampionships)
+          teamsChampionships = [
+            ...teamsChampionships,
+            ...appendTeamsChampionships({
+              championshipId: id,
+              teams: groupTeams
+            })
+          ]
+        }
       })
+
+      if (teamsChampionships.length > 0) {
+        await teamsChampionshipsModel.replace(teamsChampionships)
+      }
     }
   } else {
     await groupsModel.batchDelete({
       columnName: 'championshipId',
       values: [id]
     })
+
+    const teamsChampionships = appendTeamsChampionships({
+      championshipId: id,
+      teams,
+      groups
+    })
+
+    await teamsChampionshipsModel.replace(teamsChampionships)
   }
-
-  const teamsChampionships = appendTeamsChampionships({
-    championshipId: id,
-    teams,
-    groups
-  })
-
-  await teamsChampionshipsModel.replace(teamsChampionships)
 
   return res.json({
     data: id

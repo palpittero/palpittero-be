@@ -126,7 +126,6 @@ const appendOwnerIdSubQuery = (leagueId) => {
 const appendEntities = (rows) =>
   pipe(
     reduce((result, row) => {
-      // console.log(row)
       const JOIN_FIELDS = [
         'usersLeaguesId',
         'usersLeaguesUserId',
