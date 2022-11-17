@@ -42,7 +42,7 @@ const createTeam = async (req, res) => {
     name,
     badge,
     type,
-    countryId: country.id,
+    countryId: country?.id ?? null,
     region,
     nationalDivision,
     status
@@ -57,8 +57,8 @@ const updateTeam = async (req, res) => {
     name,
     type,
     country: rawCountry,
-    region,
-    nationalDivision,
+    region: rawRegion,
+    nationalDivision: rawNationalDivision,
     status
   } = req.body
 
@@ -70,13 +70,15 @@ const updateTeam = async (req, res) => {
 
   const badge = req.file?.path ? req.file?.path : req.body.badge
   const country = safeJSONParse(rawCountry)
+  const region = safeJSONParse(rawRegion)
+  const nationalDivision = safeJSONParse(rawNationalDivision)
 
   await teamsModel.update({
     id,
     name,
     badge,
     type,
-    countryId: country.id,
+    countryId: country?.id ?? null,
     region,
     nationalDivision,
     status
