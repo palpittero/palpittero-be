@@ -158,6 +158,28 @@ const emailLeagueAnonymousInvitation = ({ league, owner, visibility }) => {
   }
 }
 
+const emailProcessedGUesses = () => {
+  const subject = 'Confira sua nova pontuação no Palpittero'
+
+  const html = `<p>Olá,</p>
+
+  <p>Seus últimos palpites foram processados e sua pontuação atualizada.</p>
+
+  <p>
+    <a href="${getAppRoute()}" target="_blank">
+      Verificar
+    <a>
+  </p>
+  <br />
+
+  Palpittero`
+
+  return {
+    subject,
+    html
+  }
+}
+
 export default {
   [EMAILS_TYPES.ACTIVATION]: activation,
   [EMAILS_TYPES.EMAIL_CHANGE]: emailChange,
@@ -165,5 +187,6 @@ export default {
   [EMAILS_TYPES.PASSWORD_RESET]: emailPasswordReset,
   [EMAILS_TYPES.PRIVATE_LEAGUE_USER_INVITATION]: emailLeagueUserInvitation,
   [EMAILS_TYPES.PRIVATE_LEAGUE_ANONYMOUS_INVITATION]:
-    emailLeagueAnonymousInvitation
+    emailLeagueAnonymousInvitation,
+  [EMAILS_TYPES.PROCESSED_GUESSES]: emailProcessedGUesses
 }

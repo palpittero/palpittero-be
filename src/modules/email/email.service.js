@@ -78,11 +78,18 @@ const sendAnonymousLeagueInvitationEmail = ({
   return sendEmail({ to: email, subject, html })
 }
 
+const sendProcessedGuessesEmail = ({ email }) => {
+  const { subject, html } = emailStrategy[EMAILS_TYPES.PROCESSED_GUESSES]()
+
+  return sendEmail({ to: email, subject, html })
+}
+
 export {
   sendAccountCreationEmail,
   sendEmailChangeEmail,
   sendEmailActivationEmail,
   sendPasswordResetEmail,
   sendLeagueInvitationEmail,
-  sendAnonymousLeagueInvitationEmail
+  sendAnonymousLeagueInvitationEmail,
+  sendProcessedGuessesEmail
 }
