@@ -59,11 +59,14 @@ const fetchUnprocessedGuesses = async ({ leagueId } = {}) => {
           knex.raw(MATCH_STATUS_QUERY.replace(' AS status', ' AS matchStatus')),
 
           'rounds.name AS roundName',
+          'rounds.type AS roundType',
           'rounds.championshipId',
 
           'championships.name AS championshipName',
-          'championships.year AS championshipYear'
-          // knex.raw(`COUNT(${TABLE_NAME}.id) AS unprocessedGuesses`),
+          'championships.year AS championshipYear',
+
+          'groups.id AS groupId',
+          'groups.name AS groupName'
         ])
         .join('matches', 'matches.id', `${TABLE_NAME}.matchId`)
         .join('leagues', 'leagues.id', `${TABLE_NAME}.leagueId`)
@@ -75,7 +78,17 @@ const fetchUnprocessedGuesses = async ({ leagueId } = {}) => {
         .join('rounds', 'rounds.id', 'matches.roundId')
         .join('championships', 'championships.id', 'rounds.championshipId')
 
-        // .groupBy('matchStatus')
+        .leftJoin('teamsChampionships', function () {
+          this.on('teamsChampionships.teamId', '=', 'homeTeam.id').andOn(
+            'teamsChampionships.championshipId',
+            '=',
+            'rounds.championshipId'
+          )
+        })
+
+        // .leftJoin('teamsChampionships', 'teamsChampionships.teamId', 'homeTeam.id')
+        .leftJoin('groups', 'groups.id', 'teamsChampionships.groupId')
+
         .as('unprocessedGuesses')
     )
     .where({
@@ -83,7 +96,6 @@ const fetchUnprocessedGuesses = async ({ leagueId } = {}) => {
       points: null,
       ...appendWhere({ leagueId })
     })
-  // .first()
 
   return appendEntities(rows)
 }
@@ -103,6 +115,7 @@ const appendEntities = (rows) => {
     'penaltiesTimeHomeTeamGoals',
     'penaltiesTimeAwayTeamGoals'
   ]
+
   const OMIT_FIELDS = [
     'userName',
     'userAvatar',
@@ -112,10 +125,10 @@ const appendEntities = (rows) => {
     'homeTeamBadge',
     'awayTeamName',
     'awayTeamBadge',
-    'roundId',
     'matchStatus',
     'roundId',
     'roundName',
+    'roundType',
     'championshipId',
     'championshipName',
     'championshipYear',
@@ -124,10 +137,11 @@ const appendEntities = (rows) => {
     'userId',
     'leagueId',
     'matchId',
+    'groupId',
     ...MATCH_FIELDS
   ]
 
-  const output = rows.map((row) => {
+  return rows.map((row) => {
     const user = {
       id: row.userId,
       name: row.userName
@@ -160,7 +174,13 @@ const appendEntities = (rows) => {
     const round = {
       id: row.roundId,
       name: row.roundName,
+      type: row.roundType,
       championship
+    }
+
+    const group = {
+      id: row.groupId,
+      name: row.groupName
     }
 
     const match = {
@@ -168,7 +188,9 @@ const appendEntities = (rows) => {
       ...pick(MATCH_FIELDS, row),
       homeTeam,
       awayTeam,
-      round
+      round,
+      status: row.matchStatus,
+      group
     }
 
     return {
@@ -178,8 +200,6 @@ const appendEntities = (rows) => {
       match
     }
   })
-
-  return output
 }
 
 export default {

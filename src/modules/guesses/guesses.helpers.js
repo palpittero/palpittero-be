@@ -26,11 +26,15 @@ export const parseRegisterGuesses = ({ guesses, userId }) =>
     ({
       homeTeamRegularTimeGoals,
       awayTeamRegularTimeGoals,
+      homeTeamPenaltiesTimeGoals,
+      awayTeamPenaltiesTimeGoals,
       leagueId,
       matchId
     }) => ({
       homeTeamRegularTimeGoals,
       awayTeamRegularTimeGoals,
+      homeTeamPenaltiesTimeGoals,
+      awayTeamPenaltiesTimeGoals,
       leagueId,
       matchId,
       userId

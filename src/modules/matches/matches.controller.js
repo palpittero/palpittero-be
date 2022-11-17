@@ -1,6 +1,7 @@
 import uniq from 'lodash/fp/uniq'
 import compact from 'lodash/fp/compact'
 import pick from 'lodash/fp/pick'
+import uniqBy from 'lodash/fp/uniqBy'
 
 import matchesModel from '../../models/matches.model'
 import teamsModel from '../../models/teams.model'
@@ -32,7 +33,7 @@ const getMatches = async (req, res) => {
   })
 
   res.json({
-    data: parsedMatches
+    data: uniqBy('id', parsedMatches)
     // championshipsTeams
   })
 }
@@ -97,8 +98,8 @@ const updateMatch = async (req, res) => {
     regularTimeAwayTeamGoals,
     extraTimeHomeTeamGoals,
     extraTimeAwayTeamGoals,
-    penaltiesHomeTeamGoals,
-    penaltiesAwayTeamGoals,
+    penaltiesTimeHomeTeamGoals,
+    penaltiesTimeAwayTeamGoals,
     result
     // status
   } = req.body
@@ -115,8 +116,8 @@ const updateMatch = async (req, res) => {
     regularTimeAwayTeamGoals,
     extraTimeHomeTeamGoals,
     extraTimeAwayTeamGoals,
-    penaltiesHomeTeamGoals,
-    penaltiesAwayTeamGoals,
+    penaltiesTimeHomeTeamGoals,
+    penaltiesTimeAwayTeamGoals,
     result
     // status
   })

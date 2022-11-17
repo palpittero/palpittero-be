@@ -1,6 +1,7 @@
+import { CHAMPIONSHIPS_ROUND_TYPE } from '../championships/championships.constants'
 import { GUESS_POINTS_STRATEGY } from './guesses.constants'
 
-const hasSpottedExactScore = (guess) => {
+const hasSpottedRegularTimeExactScore = (guess) => {
   const hasSpottedRegularTimeHomeTeamGoals =
     guess.homeTeamRegularTimeGoals === guess.match.regularTimeHomeTeamGoals
 
@@ -10,7 +11,7 @@ const hasSpottedExactScore = (guess) => {
   return hasSpottedRegularTimeHomeTeamGoals && hasSpottedRegularTimeAwayGoals
 }
 
-const hasSpottedWrongScoreDraw = (guess) => {
+const hasSpottedRegularTimeWrongScoreDraw = (guess) => {
   const hasMatchDrawn =
     guess.match.regularTimeHomeTeamGoals ===
     guess.match.regularTimeAwayTeamGoals
@@ -18,114 +19,244 @@ const hasSpottedWrongScoreDraw = (guess) => {
   const hasGuessDrawn =
     guess.homeTeamRegularTimeGoals === guess.awayTeamRegularTimeGoals
 
-  return hasMatchDrawn && hasGuessDrawn && !hasSpottedExactScore(guess)
-}
-
-const hasSpottedWinnerAndGoals = (guess) =>
-  hasSpottedWinner(guess) && hasSpottedWinnerGoals(guess)
-
-const hasSpottedLoserGoalsAndWinner = (guess) => {
   return (
-    hasSpottedWinner(guess) &&
-    !hasSpottedWinnerGoals(guess) &&
-    hasSpottedLoserGoals(guess)
+    hasMatchDrawn && hasGuessDrawn && !hasSpottedRegularTimeExactScore(guess)
   )
 }
 
-const hasSpottedWinner = (guess) => {
-  const matchWinnerTeamId = hasMatchHomeTeamWon(guess)
+const hasSpottedRegularTimeWinnerAndGoals = (guess) =>
+  hasSpottedRegularTimeWinner(guess) && hasSpottedRegularTimeWinnerGoals(guess)
+
+const hasSpottedRegularTimeLoserGoalsAndWinner = (guess) => {
+  return (
+    hasSpottedRegularTimeWinner(guess) &&
+    !hasSpottedRegularTimeWinnerGoals(guess) &&
+    hasSpottedRegularTimeLoserGoals(guess)
+  )
+}
+
+const hasSpottedRegularTimeWinner = (guess) => {
+  const matchWinnerTeamId = hasRegularTimeMatchHomeTeamWon(guess)
     ? guess.match.homeTeamId
-    : hasMatchAwayTeamWon(guess)
+    : hasRegularTimeMatchAwayTeamWon(guess)
     ? guess.match.awayTeamId
     : null
 
-  const guessWinnerTeamId = hasGuessHomeTeamWon(guess)
+  const guessWinnerTeamId = hasGuessRegularTimeHomeTeamWon(guess)
     ? guess.match.homeTeamId
-    : hasGuessAwayTeamWon(guess)
+    : hasGuessRegularTimeAwayTeamWon(guess)
     ? guess.match.awayTeamId
     : null
 
   return matchWinnerTeamId === guessWinnerTeamId
 }
 
-const hasMatchHomeTeamWon = (guess) => {
+const hasRegularTimeMatchHomeTeamWon = (guess) => {
   return (
     guess.match.regularTimeHomeTeamGoals > guess.match.regularTimeAwayTeamGoals
   )
 }
 
-const hasMatchAwayTeamWon = (guess) => {
+const hasRegularTimeMatchAwayTeamWon = (guess) => {
   return (
     guess.match.regularTimeHomeTeamGoals < guess.match.regularTimeAwayTeamGoals
   )
 }
 
-const hasGuessHomeTeamWon = (guess) =>
+const hasGuessRegularTimeHomeTeamWon = (guess) =>
   guess.homeTeamRegularTimeGoals > guess.awayTeamRegularTimeGoals
 
-const hasGuessAwayTeamWon = (guess) =>
+const hasGuessRegularTimeAwayTeamWon = (guess) =>
   guess.homeTeamRegularTimeGoals < guess.awayTeamRegularTimeGoals
 
-const hasSpottedWinnerGoals = (guess) => {
-  const matchWinnerRegularTimeGoals = hasMatchHomeTeamWon(guess)
+const hasSpottedRegularTimeWinnerGoals = (guess) => {
+  const matchWinnerRegularTimeGoals = hasRegularTimeMatchHomeTeamWon(guess)
     ? guess.match.regularTimeHomeTeamGoals
-    : hasMatchAwayTeamWon(guess)
+    : hasRegularTimeMatchAwayTeamWon(guess)
     ? guess.match.regularTimeAwayTeamGoals
     : null
 
-  const guessWinnerRegularTimeGoals = hasGuessHomeTeamWon(guess)
+  const guessWinnerRegularTimeGoals = hasGuessRegularTimeHomeTeamWon(guess)
     ? guess.homeTeamRegularTimeGoals
-    : hasGuessAwayTeamWon(guess)
+    : hasGuessRegularTimeAwayTeamWon(guess)
     ? guess.awayTeamRegularTimeGoals
     : null
 
   return matchWinnerRegularTimeGoals === guessWinnerRegularTimeGoals
 }
 
-const hasSpottedLoserGoals = (guess) => {
-  const matchLoserRegularTimeGoals = hasMatchHomeTeamWon(guess)
+const hasSpottedRegularTimeLoserGoals = (guess) => {
+  const matchLoserRegularTimeGoals = hasRegularTimeMatchHomeTeamWon(guess)
     ? guess.match.regularTimeAwayTeamGoals
-    : hasMatchAwayTeamWon(guess)
+    : hasRegularTimeMatchAwayTeamWon(guess)
     ? guess.match.regularTimeHomeTeamGoals
     : null
 
-  const guessLoserRegularTimeGoals = hasGuessHomeTeamWon(guess)
+  const guessLoserRegularTimeGoals = hasGuessRegularTimeHomeTeamWon(guess)
     ? guess.awayTeamRegularTimeGoals
-    : hasGuessAwayTeamWon(guess)
+    : hasGuessRegularTimeAwayTeamWon(guess)
     ? guess.homeTeamRegularTimeGoals
     : null
 
   return matchLoserRegularTimeGoals === guessLoserRegularTimeGoals
 }
 
-const hasSpottedWinnerWrongGoals = (guess) => {
+const hasSpottedRegularTimeWinnerWrongGoals = (guess) => {
   return (
-    hasSpottedWinner(guess) &&
-    !hasSpottedWinnerGoals(guess) &&
-    !hasSpottedLoserGoals(guess)
+    hasSpottedRegularTimeWinner(guess) &&
+    !hasSpottedRegularTimeWinnerGoals(guess) &&
+    !hasSpottedRegularTimeLoserGoals(guess)
   )
 }
 
-const hasSpottedAnyTeamGoals = (guess) => {
+const hasSpottedRegularTimeAnyTeamGoals = (guess) => {
   return (
     guess.homeTeamRegularTimeGoals === guess.match.regularTimeHomeTeamGoals ||
     guess.awayTeamRegularTimeGoals === guess.match.regularTimeAwayTeamGoals
   )
 }
 
+const hasSpottedPenaltiesTimeExactScore = (guess) => {
+  const hasSpottedPenaltiesTimeHomeTeamGoals =
+    guess.homeTeamPenaltiesTimeGoals === guess.match.penaltiesTimeHomeTeamGoals
+
+  const hasSpottedPenaltiesTimeAwayGoals =
+    guess.awayTeamPenaltiesTimeGoals === guess.match.penaltiesTimeAwayTeamGoals
+
+  return (
+    hasSpottedPenaltiesTimeHomeTeamGoals && hasSpottedPenaltiesTimeAwayGoals
+  )
+}
+
+const hasSpottedPenaltiesTimeWinnerAndGoals = (guess) =>
+  hasSpottedPenaltiesTimeWinner(guess) &&
+  hasSpottedPenaltiesTimeWinnerGoals(guess)
+
+const hasSpottedPenaltiesTimeWinner = (guess) => {
+  const penaltiesWinnerTeamId = hasPenaltiesTimeMatchHomeTeamWon(guess)
+    ? guess.match.homeTeamId
+    : hasPenaltiesTimeMatchAwayTeamWon(guess)
+    ? guess.match.awayTeamId
+    : null
+
+  const guessPenaltiesWinnerTeamId = hasGuessPenaltiesTimeHomeTeamWon(guess)
+    ? guess.match.homeTeamId
+    : hasGuessPenaltiesTimeAwayTeamWon(guess)
+    ? guess.match.awayTeamId
+    : null
+
+  return penaltiesWinnerTeamId === guessPenaltiesWinnerTeamId
+}
+
+const hasSpottedPenaltiesTimeWinnerGoals = (guess) => {
+  const matchWinnerPenaltiesTimeGoals = hasPenaltiesTimeMatchHomeTeamWon(guess)
+    ? guess.match.penaltiesTimeHomeTeamGoals
+    : hasPenaltiesTimeMatchAwayTeamWon(guess)
+    ? guess.match.penaltiesTimeAwayTeamGoals
+    : null
+
+  const guessWinnerPenaltiesTimeGoals = hasGuessPenaltiesTimeHomeTeamWon(guess)
+    ? guess.homeTeamPenaltiesTimeGoals
+    : hasGuessPenaltiesTimeAwayTeamWon(guess)
+    ? guess.awayTeamPenaltiesTimeGoals
+    : null
+
+  return matchWinnerPenaltiesTimeGoals === guessWinnerPenaltiesTimeGoals
+}
+
+const hasPenaltiesTimeMatchHomeTeamWon = (guess) => {
+  return (
+    guess.match.penaltiesTimeHomeTeamGoals >
+    guess.match.penaltiesTimeAwayTeamGoals
+  )
+}
+
+const hasPenaltiesTimeMatchAwayTeamWon = (guess) => {
+  return (
+    guess.match.penaltiesTimeHomeTeamGoals <
+    guess.match.penaltiesTimeAwayTeamGoals
+  )
+}
+
+const hasGuessPenaltiesTimeHomeTeamWon = (guess) =>
+  guess.homeTeamPenaltiesTimeGoals > guess.awayTeamPenaltiesTimeGoals
+
+const hasGuessPenaltiesTimeAwayTeamWon = (guess) =>
+  guess.homeTeamPenaltiesTimeGoals < guess.awayTeamPenaltiesTimeGoals
+
+const hasSpottedPenaltiesTimeLoserGoalsAndWinner = (guess) => {
+  return (
+    hasSpottedPenaltiesTimeWinner(guess) &&
+    !hasSpottedPenaltiesTimeWinnerGoals(guess) &&
+    hasSpottedPenaltiesTimeLoserGoals(guess)
+  )
+}
+
+const hasSpottedPenaltiesTimeWinnerWrongGoals = (guess) => {
+  return (
+    hasSpottedPenaltiesTimeWinner(guess) &&
+    !hasSpottedPenaltiesTimeWinnerGoals(guess) &&
+    !hasSpottedPenaltiesTimeLoserGoals(guess)
+  )
+}
+
+const hasSpottedPenaltiesTimeLoserGoals = (guess) => {
+  const matchLoserPenaltiesTimeGoals = hasPenaltiesTimeMatchHomeTeamWon(guess)
+    ? guess.match.penaltiesTimeAwayTeamGoals
+    : hasPenaltiesTimeMatchAwayTeamWon(guess)
+    ? guess.match.penaltiesTimeHomeTeamGoals
+    : null
+
+  const guessLoserPenaltiesTimeGoals = hasGuessPenaltiesTimeHomeTeamWon(guess)
+    ? guess.awayTeamPenaltiesTimeGoals
+    : hasGuessPenaltiesTimeAwayTeamWon(guess)
+    ? guess.homeTeamPenaltiesTimeGoals
+    : null
+
+  return matchLoserPenaltiesTimeGoals === guessLoserPenaltiesTimeGoals
+}
+
+const hasSpottedPenaltiesTimeAnyTeamGoals = (guess) => {
+  return (
+    guess.homeTeamPenaltiesTimeGoals ===
+      guess.match.penaltiesTimeHomeTeamGoals ||
+    guess.awayTeamPenaltiesTimeGoals === guess.match.penaltiesTimeAwayTeamGoals
+  )
+}
+
 const calculateGuessPointsGrouped = (guess) => {
-  if (hasSpottedExactScore(guess)) {
+  if (hasSpottedRegularTimeExactScore(guess)) {
     return 5
   } else if (
-    hasSpottedWrongScoreDraw(guess) ||
-    hasSpottedWinnerAndGoals(guess)
+    hasSpottedRegularTimeWrongScoreDraw(guess) ||
+    hasSpottedRegularTimeWinnerAndGoals(guess)
   ) {
     return 4
-  } else if (hasSpottedLoserGoalsAndWinner(guess)) {
+  } else if (hasSpottedRegularTimeLoserGoalsAndWinner(guess)) {
     return 3
-  } else if (hasSpottedWinnerWrongGoals(guess)) {
+  } else if (hasSpottedRegularTimeWinnerWrongGoals(guess)) {
     return 2
-  } else if (hasSpottedAnyTeamGoals(guess)) {
+  } else if (hasSpottedRegularTimeAnyTeamGoals(guess)) {
+    return 1
+  }
+
+  return 0
+}
+
+const calculateGuessBonusPointsGrouped = (guess) => {
+  if (guess.match.round.type === CHAMPIONSHIPS_ROUND_TYPE.REGULAR_TIME) {
+    return 0
+  }
+
+  if (hasSpottedPenaltiesTimeExactScore(guess)) {
+    return 5
+  } else if (hasSpottedPenaltiesTimeWinnerAndGoals(guess)) {
+    return 4
+  } else if (hasSpottedPenaltiesTimeLoserGoalsAndWinner(guess)) {
+    return 3
+  } else if (hasSpottedPenaltiesTimeWinnerWrongGoals(guess)) {
+    return 2
+  } else if (hasSpottedPenaltiesTimeAnyTeamGoals(guess)) {
     return 1
   }
 
@@ -133,5 +264,10 @@ const calculateGuessPointsGrouped = (guess) => {
 }
 
 export const guessPointsStrategy = {
-  [GUESS_POINTS_STRATEGY.GROUPED]: calculateGuessPointsGrouped
+  [GUESS_POINTS_STRATEGY.GROUPED]: (guess) => {
+    const points = calculateGuessPointsGrouped(guess)
+    const bonusPoints = calculateGuessBonusPointsGrouped(guess)
+
+    return points + bonusPoints
+  }
 }
