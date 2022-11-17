@@ -45,7 +45,18 @@ const fetchById = async (id) => {
   const rows = await knex(TABLE_NAME)
     .select([
       `${TABLE_NAME}.*`,
-      'match.*',
+      'match.roundId',
+      'match.homeTeamId',
+      'match.awayTeamId',
+      'match.regularTimeHomeTeamGoals',
+      'match.regularTimeAwayTeamGoals',
+      'match.extraTimeHomeTeamGoals',
+      'match.extraTimeAwayTeamGoals',
+      'match.penaltiesTimeHomeTeamGoals',
+      'match.penaltiesTimeAwayTeamGoals',
+      'match.date',
+      'match.result',
+      'match.status',
       'user.name AS userName',
       'league.name AS leagueName',
       'league.badge AS leagueBadge',
@@ -71,7 +82,19 @@ const fetchAll = async ({ userId, leagueId, matchId, roundId } = {}) => {
   const rows = await knex(TABLE_NAME)
     .select([
       `${TABLE_NAME}.*`,
-      'match.*',
+      // 'match.*',
+      'match.roundId',
+      'match.homeTeamId',
+      'match.awayTeamId',
+      'match.regularTimeHomeTeamGoals',
+      'match.regularTimeAwayTeamGoals',
+      'match.extraTimeHomeTeamGoals',
+      'match.extraTimeAwayTeamGoals',
+      'match.penaltiesTimeHomeTeamGoals',
+      'match.penaltiesTimeAwayTeamGoals',
+      'match.date',
+      'match.result',
+      'match.status',
       'user.name AS userName',
       'league.name AS leagueName',
       'league.badge AS leagueBadge',
@@ -80,6 +103,7 @@ const fetchAll = async ({ userId, leagueId, matchId, roundId } = {}) => {
       'homeTeam.badge AS homeTeamBadge',
       'awayTeam.name AS awayTeamName',
       'awayTeam.badge AS awayTeamBadge',
+      'round.type AS roundType',
       knex.raw(MATCH_STATUS_QUERY)
     ])
     .join('users AS user', 'user.id', `${TABLE_NAME}.userId`)
@@ -87,6 +111,14 @@ const fetchAll = async ({ userId, leagueId, matchId, roundId } = {}) => {
     .join('matches AS match', 'match.id', `${TABLE_NAME}.matchId`)
     .join('teams AS homeTeam', 'homeTeam.id', 'match.homeTeamId')
     .join('teams AS awayTeam', 'awayTeam.id', 'match.awayTeamId')
+    // .join(
+    //   'leaguesChampionships AS leagueChampionship',
+    //   'leagueChampionship.leagueId',
+    //   'league.id'
+    // )
+    // .join('rounds AS round', 'round.championshipId', 'league.id')
+
+    .join('rounds AS round', 'match.roundId', 'round.id')
     .where(
       appendWhere({
         userId,
@@ -95,6 +127,7 @@ const fetchAll = async ({ userId, leagueId, matchId, roundId } = {}) => {
         roundId
       })
     )
+    .groupBy(`${TABLE_NAME}.id`)
 
   return appendEntities(rows)
 }
@@ -124,7 +157,8 @@ const appendEntities = (rows) =>
       'homeTeamName',
       'awayTeamName',
       'homeTeamBadge',
-      'awayTeamBadge'
+      'awayTeamBadge',
+      'roundType'
     ]
 
     return [
@@ -154,6 +188,9 @@ const appendEntities = (rows) =>
             id: row.awayTeamId,
             name: row.awayTeamName,
             badge: row.awayTeamBadge
+          },
+          round: {
+            type: row.roundType
           }
         }
       }
@@ -163,7 +200,7 @@ const appendEntities = (rows) =>
 const appendWhere = ({ userId, leagueId, matchId, roundId }) =>
   pickBy(identity, {
     userId,
-    leagueId,
+    'guesses.leagueId': leagueId,
     matchId,
     'match.roundId': roundId
   })

@@ -152,7 +152,7 @@ const appendEntities = (rows) =>
             row
           ),
           teams: uniqBy('id', teams),
-          rounds: uniqBy('id', rounds),
+          rounds: orderBy('code', 'asc', uniqBy('id', rounds)),
           groups: orderBy('code', 'asc', uniqBy('id', groups)),
           hasGroups: groups.length > 0
         }
