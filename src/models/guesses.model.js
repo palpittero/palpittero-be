@@ -96,6 +96,7 @@ const fetchAll = async ({ userId, leagueId, matchId, roundId } = {}) => {
       'match.result',
       'match.status',
       'user.name AS userName',
+      'user.email AS userEmail',
       'league.name AS leagueName',
       'league.badge AS leagueBadge',
       'league.pointsStrategy AS leaguePointsStrategy',
@@ -151,6 +152,7 @@ const appendEntities = (rows) =>
 
     const JOIN_FIELDS = [
       'userName',
+      'userEmail',
       'leagueName',
       'leagueBadge',
       'leaguePointsStrategy',
@@ -168,7 +170,8 @@ const appendEntities = (rows) =>
         status: row.guessStatus,
         user: {
           id: row.userId,
-          name: row.userName
+          name: row.userName,
+          email: row.userEmail
         },
         league: {
           id: row.leagueId,

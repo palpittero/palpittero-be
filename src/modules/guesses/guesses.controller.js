@@ -1,5 +1,7 @@
+import uniq from 'lodash/fp/uniq'
 import guessesModel from '../../models/guesses.model'
 import { calculateGuessesPoints, parseRegisterGuesses } from './guesses.helpers'
+import { sendProcessedGuessesEmail } from '../email/email.service'
 
 const getGuesses = async (req, res) => {
   const { userId, leagueId, matchId, roundId } = req.query
@@ -103,8 +105,11 @@ const processGuesses = async (req, res) => {
   const guesses = await guessesModel.fetchAll()
 
   const guessesUpdate = calculateGuessesPoints(guesses)
+  const usersEmails = uniq(guesses.map(({ user }) => user.email))
 
   await guessesModel.replace(guessesUpdate)
+
+  usersEmails.map((email) => sendProcessedGuessesEmail({ email }))
   res.sendStatus(200)
 }
 
