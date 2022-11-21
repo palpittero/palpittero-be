@@ -78,7 +78,13 @@ const fetchById = async (id) => {
   return appendEntities(rows)[0]
 }
 
-const fetchAll = async ({ userId, leagueId, matchId, roundId } = {}) => {
+const fetchAll = async ({
+  userId,
+  leagueId,
+  championshipId,
+  matchId,
+  roundId
+} = {}) => {
   const rows = await knex(TABLE_NAME)
     .select([
       `${TABLE_NAME}.*`,
@@ -105,6 +111,7 @@ const fetchAll = async ({ userId, leagueId, matchId, roundId } = {}) => {
       'awayTeam.name AS awayTeamName',
       'awayTeam.badge AS awayTeamBadge',
       'round.type AS roundType',
+      'championship.name AS championshipName',
       knex.raw(MATCH_STATUS_QUERY)
     ])
     .join('users AS user', 'user.id', `${TABLE_NAME}.userId`)
@@ -112,12 +119,16 @@ const fetchAll = async ({ userId, leagueId, matchId, roundId } = {}) => {
     .join('matches AS match', 'match.id', `${TABLE_NAME}.matchId`)
     .join('teams AS homeTeam', 'homeTeam.id', 'match.homeTeamId')
     .join('teams AS awayTeam', 'awayTeam.id', 'match.awayTeamId')
-    // .join(
-    //   'leaguesChampionships AS leagueChampionship',
-    //   'leagueChampionship.leagueId',
-    //   'league.id'
-    // )
-    // .join('rounds AS round', 'round.championshipId', 'league.id')
+    .join(
+      'leaguesChampionships AS leagueChampionship',
+      'leagueChampionship.leagueId',
+      'league.id'
+    )
+    .join(
+      'championships AS championship',
+      'leagueChampionship.championshipId',
+      'championship.id'
+    )
 
     .join('rounds AS round', 'match.roundId', 'round.id')
     .where(
@@ -125,7 +136,8 @@ const fetchAll = async ({ userId, leagueId, matchId, roundId } = {}) => {
         userId,
         leagueId,
         matchId,
-        roundId
+        roundId,
+        championshipId
       })
     )
     .groupBy(`${TABLE_NAME}.id`)
@@ -160,7 +172,9 @@ const appendEntities = (rows) =>
       'awayTeamName',
       'homeTeamBadge',
       'awayTeamBadge',
-      'roundType'
+      'roundType',
+      'championshipId',
+      'championshipName'
     ]
 
     return [
@@ -193,19 +207,24 @@ const appendEntities = (rows) =>
             badge: row.awayTeamBadge
           },
           round: {
-            type: row.roundType
+            type: row.roundType,
+            championship: {
+              id: row.championshipId,
+              name: row.championshipName
+            }
           }
         }
       }
     ]
   }, [])
 
-const appendWhere = ({ userId, leagueId, matchId, roundId }) =>
+const appendWhere = ({ userId, leagueId, championshipId, matchId, roundId }) =>
   pickBy(identity, {
     userId,
     'guesses.leagueId': leagueId,
     matchId,
-    'match.roundId': roundId
+    'match.roundId': roundId,
+    'round.championshipId': championshipId
   })
 
 export default {
