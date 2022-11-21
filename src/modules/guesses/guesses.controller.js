@@ -102,7 +102,8 @@ const deleteGuess = async (req, res) => {
 }
 
 const processGuesses = async (req, res) => {
-  const guesses = await guessesModel.fetchAll()
+  const { leagueId, championshipId } = req.body
+  const guesses = await guessesModel.fetchAll({ leagueId, championshipId })
 
   const guessesUpdate = calculateGuessesPoints(guesses)
   const usersEmails = uniq(guesses.map(({ user }) => user.email))
