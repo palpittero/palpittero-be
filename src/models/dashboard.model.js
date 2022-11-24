@@ -1,12 +1,17 @@
+import knex from '../config/database'
 import pick from 'lodash/fp/pick'
 import omit from 'lodash/fp/omit'
 import omitBy from 'lodash/fp/omitBy'
 import isNil from 'lodash/fp/isNil'
-import knex from '../config/database'
+import pipe from 'lodash/fp/pipe'
+import reduce from 'lodash/fp/reduce'
+import values from 'lodash/fp/values'
 import { MATCH_STATUSES } from '../modules/matches/matches.constants'
 import { MATCH_STATUS_QUERY } from './matches.model'
+// import { pipe } from 'lodash/fp'
 
-const TABLE_NAME = 'guesses'
+const MATCHES_GUESSES_TABLE_NAME = 'guesses'
+const CHAMPIONSHIPS_GUESSES_TABLE_NAME = 'championshipsGuesses'
 
 const fetchGeneralStats = async () =>
   await knex
@@ -19,22 +24,22 @@ const fetchGeneralStats = async () =>
     ])
     .first()
 
-const fetchUnprocessedGuesses = async ({ leagueId } = {}) => {
+const fetchUnprocessedMatchesGuesses = async ({ leagueId } = {}) => {
   const rows = await knex
     .select('*')
     .from(
-      knex(TABLE_NAME)
+      knex(MATCHES_GUESSES_TABLE_NAME)
         .select([
-          `${TABLE_NAME}.points`,
-          `${TABLE_NAME}.homeTeamRegularTimeGoals`,
-          `${TABLE_NAME}.awayTeamRegularTimeGoals`,
-          `${TABLE_NAME}.homeTeamExtraTimeGoals`,
-          `${TABLE_NAME}.awayTeamExtraTimeGoals`,
-          `${TABLE_NAME}.homeTeamPenaltiesTimeGoals`,
-          `${TABLE_NAME}.awayTeamPenaltiesTimeGoals`,
-          `${TABLE_NAME}.userId`,
-          `${TABLE_NAME}.leagueId`,
-          `${TABLE_NAME}.matchId`,
+          `${MATCHES_GUESSES_TABLE_NAME}.points`,
+          `${MATCHES_GUESSES_TABLE_NAME}.homeTeamRegularTimeGoals`,
+          `${MATCHES_GUESSES_TABLE_NAME}.awayTeamRegularTimeGoals`,
+          `${MATCHES_GUESSES_TABLE_NAME}.homeTeamExtraTimeGoals`,
+          `${MATCHES_GUESSES_TABLE_NAME}.awayTeamExtraTimeGoals`,
+          `${MATCHES_GUESSES_TABLE_NAME}.homeTeamPenaltiesTimeGoals`,
+          `${MATCHES_GUESSES_TABLE_NAME}.awayTeamPenaltiesTimeGoals`,
+          `${MATCHES_GUESSES_TABLE_NAME}.userId`,
+          `${MATCHES_GUESSES_TABLE_NAME}.leagueId`,
+          `${MATCHES_GUESSES_TABLE_NAME}.matchId`,
 
           'users.name AS userName',
           'users.avatar AS userAvatar',
@@ -68,9 +73,9 @@ const fetchUnprocessedGuesses = async ({ leagueId } = {}) => {
           'groups.id AS groupId',
           'groups.name AS groupName'
         ])
-        .join('matches', 'matches.id', `${TABLE_NAME}.matchId`)
-        .join('leagues', 'leagues.id', `${TABLE_NAME}.leagueId`)
-        .join('users', 'users.id', `${TABLE_NAME}.userId`)
+        .join('matches', 'matches.id', `${MATCHES_GUESSES_TABLE_NAME}.matchId`)
+        .join('leagues', 'leagues.id', `${MATCHES_GUESSES_TABLE_NAME}.leagueId`)
+        .join('users', 'users.id', `${MATCHES_GUESSES_TABLE_NAME}.userId`)
 
         .join('teams AS homeTeam', 'homeTeam.id', 'matches.homeTeamId')
         .join('teams AS awayTeam', 'awayTeam.id', 'matches.awayTeamId')
@@ -100,9 +105,67 @@ const fetchUnprocessedGuesses = async ({ leagueId } = {}) => {
   return appendEntities(rows)
 }
 
+const fetchUnprocessedChampionshipsGuesses = async ({ leagueId } = {}) => {
+  const rows = await knex
+    .select('*')
+    .from(
+      knex(CHAMPIONSHIPS_GUESSES_TABLE_NAME)
+        .select([
+          `${CHAMPIONSHIPS_GUESSES_TABLE_NAME}.*`,
+          'users.name AS userName',
+          'users.email AS userEmail',
+          'users.avatar AS userAvatar',
+
+          'leagues.name AS leagueName',
+          'leagues.badge AS leagueBadge',
+
+          'championship.name AS championshipName',
+          'championship.year AS championshipYear',
+
+          'championshipTeamPosition.position AS championshipTeamPositionPosition',
+
+          'teamPosition.id AS teamPositionId',
+          'teamPosition.name AS teamPositionName',
+          'teamPosition.badge AS teamPositionBadge'
+        ])
+
+        .join('users', 'users.id', `${CHAMPIONSHIPS_GUESSES_TABLE_NAME}.userId`)
+        .join(
+          'leagues',
+          'leagues.id',
+          `${CHAMPIONSHIPS_GUESSES_TABLE_NAME}.leagueId`
+        )
+
+        .join(
+          'championships AS championship',
+          'championship.id',
+          `${CHAMPIONSHIPS_GUESSES_TABLE_NAME}.championshipId`
+        )
+
+        .leftJoin(
+          'championshipsTeamsPositions AS championshipTeamPosition',
+          'championshipTeamPosition.championshipId',
+          'championship.id'
+        )
+
+        .leftJoin(
+          'teams AS teamPosition',
+          'teamPosition.id',
+          `${CHAMPIONSHIPS_GUESSES_TABLE_NAME}.teamId`
+        )
+        .as('unprocessedChampionshipGuesses')
+    )
+    .where({
+      points: null,
+      ...appendWhere({ leagueId })
+    })
+
+  return appendChampionshipsGuessesEntities(rows)
+}
+
 const appendWhere = ({ leagueId }) =>
   omitBy(isNil, {
-    leagueId: leagueId
+    leagueId
   })
 
 const appendEntities = (rows) => {
@@ -202,7 +265,80 @@ const appendEntities = (rows) => {
   })
 }
 
+const appendChampionshipsGuessesEntities = (rows) => {
+  const OMIT_FIELDS = [
+    'userName',
+    'userEmail',
+    'userAvatar',
+    'leagueName',
+    'leagueBadge',
+    'championshipId',
+    'championshipName',
+    'championshipYear',
+
+    'championshipTeamPositionPosition',
+
+    'teamPositionId',
+    'teamPositionName',
+    'teamPositionBadge'
+  ]
+
+  return pipe(
+    reduce((result, row) => {
+      const user = {
+        id: row.userId,
+        name: row.userName
+      }
+
+      const league = {
+        id: row.leagueId,
+        name: row.leagueName,
+        badge: row.leagueBadge
+      }
+
+      const position = {
+        position: row.championshipTeamPositionPosition,
+        team: {
+          id: row.teamPositionId,
+          name: row.teamPositionName,
+          badge: row.teamPositionBadge
+        }
+      }
+
+      const positions = row.championshipTeamPositionPosition
+        ? [...(result[row.id]?.championship?.positions || []), position]
+        : result[row.id]?.championship?.positions || []
+
+      const team = {
+        id: row.teamPositionId,
+        name: row.teamPositionName,
+        badge: row.teamPositionBadge
+      }
+
+      const championship = {
+        id: row.championshipId,
+        name: row.championshipName,
+        year: row.championshipYear,
+        positions
+      }
+
+      return {
+        ...result,
+        [row.id]: {
+          ...omit(OMIT_FIELDS, row),
+          user,
+          league,
+          championship,
+          team
+        }
+      }
+    }, {}),
+    values
+  )(rows)
+}
+
 export default {
   fetchGeneralStats,
-  fetchUnprocessedGuesses
+  fetchUnprocessedMatchesGuesses,
+  fetchUnprocessedChampionshipsGuesses
 }

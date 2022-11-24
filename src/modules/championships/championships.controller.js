@@ -14,6 +14,8 @@ import maxBy from 'lodash/fp/maxBy'
 import difference from 'lodash/fp/difference'
 import orderBy from 'lodash/fp/orderBy'
 import { CHAMPIONSHIPS_ROUNDS } from './championships.constants'
+import { parseChampionshipPositions } from './championships.helpers'
+import championshipsTeamsPositionsModel from '../../models/championshipsTeamsPositions.model'
 
 const getChampionships = async (req, res) => {
   const { query } = req
@@ -98,7 +100,8 @@ const createChampionship = async (req, res) => {
 
 const updateChampionship = async (req, res) => {
   const id = parseInt(req.params.id)
-  const { name, year, teams, rounds, groups, hasGroups, status } = req.body
+  const { name, year, teams, rounds, positions, groups, hasGroups, status } =
+    req.body
 
   const championship = await championshipsModel.fetchById(id)
 
@@ -250,6 +253,16 @@ const updateChampionship = async (req, res) => {
     })
 
     await teamsChampionshipsModel.replace(teamsChampionships)
+  }
+
+  await championshipsTeamsPositionsModel.delete({ championshipId: id })
+  const championshipPositions = parseChampionshipPositions({
+    positions,
+    championshipId: id
+  })
+
+  if (championshipPositions.length > 0) {
+    await championshipsTeamsPositionsModel.replace(championshipPositions)
   }
 
   return res.json({

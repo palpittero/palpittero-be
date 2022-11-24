@@ -1,16 +1,17 @@
 import jwt from 'jsonwebtoken'
 import usersLeaguesModel from '../../models/usersLeagues.model'
 import leaguesModel from '../../models/leagues.model'
-import { USERS_LEAGUES_STATUSES } from './usersLeagues.constants'
 import { validateAuthenticatedToken } from '../../shared/token.service'
 import usersModel from '../../models/users.model'
 import {
   sendAnonymousLeagueInvitationEmail,
   sendLeagueInvitationEmail
 } from '../email/email.service'
-import { EMAIL_LEAGUE_VISIBILITY } from '../email/email.constants'
 import { appendUsersLeagues } from './usersLeagues.helpers'
 import leaguesInvitationsModel from '../../models/leaguesInvitations.model'
+
+import { USERS_LEAGUES_STATUSES } from './usersLeagues.constants'
+import { EMAIL_LEAGUE_VISIBILITY } from '../email/email.constants'
 import { LEAGUES_INVITATIONS_STATUSES } from '../leaguesInvitations/leaguesInvitations.constants'
 
 const inviteUsers = async (req, res) => {

@@ -27,10 +27,14 @@ const fetchAll = async () => {
       'rounds.code AS roundCode',
       'rounds.name AS roundName',
       'rounds.type AS roundType',
-
       'groups.id AS groupId',
       'groups.code AS groupCode',
-      'groups.name AS groupName'
+      'groups.name AS groupName',
+      'championshipTeamPosition.position',
+      'championshipTeamPosition.points',
+      'teamPosition.id AS teamPositionId',
+      'teamPosition.name AS teamPositionName',
+      'teamPosition.badge AS teamPositionBadge'
     ])
     .leftJoin(
       'teamsChampionships',
@@ -40,6 +44,16 @@ const fetchAll = async () => {
     .leftJoin('teams', 'teams.id', `teamsChampionships.teamId`)
     .leftJoin('rounds', 'rounds.championshipId', `${TABLE_NAME}.id`)
     .leftJoin('groups', 'groups.championshipId', `${TABLE_NAME}.id`)
+    .leftJoin(
+      'championshipsTeamsPositions AS championshipTeamPosition',
+      'championshipTeamPosition.championshipId',
+      `${TABLE_NAME}.id`
+    )
+    .leftJoin(
+      'teams AS teamPosition',
+      'teamPosition.id',
+      `championshipTeamPosition.teamId`
+    )
     .where({
       [`${TABLE_NAME}.status`]: STATUS.ACTIVE
     })
@@ -73,7 +87,7 @@ const fetchById = async (id) => {
 
 const fetchByLeague = async ({ leagueId }) => {
   const rows = await knex(TABLE_NAME)
-    .select([`${TABLE_NAME}.*`])
+    .select([`${TABLE_NAME}.*`, 'leaguesChampionships.enableGuesses'])
     .join(
       'leaguesChampionships',
       'leaguesChampionships.championshipId',
@@ -97,6 +111,13 @@ const appendEntities = (rows) =>
       const TEAMS_CHAMPIONSHIPS_FIELDS = ['teamGroupId']
       const ROUNDS_FIELDS = ['roundId', 'roundCode', 'roundName', 'roundType']
       const GROUPS_FIELDS = ['groupId', 'groupCode', 'groupName']
+      const CHAMPIONSHIPS_TEAMS_POSITIONS_FIELDS = [
+        'teamPositionId',
+        'teamPositionName',
+        'teamPositionBadge',
+        'points',
+        'position'
+      ]
 
       const team = {
         id: row.teamId,
@@ -117,6 +138,17 @@ const appendEntities = (rows) =>
         code: row.groupCode
       }
 
+      const position = {
+        team: {
+          id: row.teamPositionId,
+          name: row.teamPositionName,
+          badge: row.teamPositionBadge
+        },
+        teamId: row.teamPositionId,
+        position: row.position,
+        points: row.points
+      }
+
       const teams = row.championshipId
         ? [...(result[row.id]?.teams || []), team]
         : result[row.id]?.teams || []
@@ -124,6 +156,10 @@ const appendEntities = (rows) =>
       const rounds = row.roundType
         ? [...(result[row.id]?.rounds || []), round]
         : result[row.id]?.rounds || []
+
+      const positions = row.teamPositionId
+        ? [...(result[row.id]?.positions || []), position]
+        : result[row.id]?.positions || []
 
       const groups = row.groupId
         ? [...(result[row.id]?.groups || []), group].map((group) => {
@@ -147,13 +183,15 @@ const appendEntities = (rows) =>
               ...TEAMS_FIELDS,
               ...ROUNDS_FIELDS,
               ...GROUPS_FIELDS,
-              ...TEAMS_CHAMPIONSHIPS_FIELDS
+              ...TEAMS_CHAMPIONSHIPS_FIELDS,
+              ...CHAMPIONSHIPS_TEAMS_POSITIONS_FIELDS
             ],
             row
           ),
           teams: uniqBy('id', teams),
           rounds: orderBy('code', 'asc', uniqBy('id', rounds)),
           groups: orderBy('code', 'asc', uniqBy('id', groups)),
+          positions: orderBy('position', 'asc', uniqBy('position', positions)),
           hasGroups: groups.length > 0
         }
       }
