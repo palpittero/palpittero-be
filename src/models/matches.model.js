@@ -26,7 +26,7 @@ const columns = [
 ]
 
 export const MATCH_STATUS_QUERY = `
-  IF(
+  COALESCE(${TABLE_NAME}.status, IF(
     ${DB_DEFAULT_DATE_FN} > DATE_ADD(date, INTERVAL 240 MINUTE),
     "finished",
     IF(
@@ -38,7 +38,7 @@ export const MATCH_STATUS_QUERY = `
         "scheduled"
       )
     )
-  ) AS status
+  )) AS status
 `
 
 const matchesModel = baseModel(TABLE_NAME, columns)
