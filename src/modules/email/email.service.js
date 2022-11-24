@@ -20,7 +20,7 @@ const sendEmailChangeEmail = ({ name, email, to }) => {
   return sendEmail({ to, subject, html })
 }
 
-const sendEmailActivationEmail = ({ name, email, token }) => {
+const sendActivationEmail = ({ name, email, token }) => {
   const { subject, html } = emailStrategy[EMAILS_TYPES.EMAIL_ACTIVATION]({
     name,
     token
@@ -84,12 +84,22 @@ const sendProcessedGuessesEmail = ({ email }) => {
   return sendEmail({ to: email, subject, html })
 }
 
+const resendActivationEmail = ({ name, email, token }) => {
+  const { subject, html } = emailStrategy[EMAILS_TYPES.RESEND_ACTIVATION]({
+    name,
+    token
+  })
+
+  return sendEmail({ to: email, subject, html })
+}
+
 export {
   sendAccountCreationEmail,
   sendEmailChangeEmail,
-  sendEmailActivationEmail,
+  sendActivationEmail,
   sendPasswordResetEmail,
   sendLeagueInvitationEmail,
   sendAnonymousLeagueInvitationEmail,
-  sendProcessedGuessesEmail
+  sendProcessedGuessesEmail,
+  resendActivationEmail
 }
