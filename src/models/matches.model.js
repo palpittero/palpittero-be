@@ -115,6 +115,8 @@ const fetchAll = async ({ status, date, roundId }) => {
       `championship.id`
     )
     .where(appendWhere({ status, roundId }))
+    .orderBy(`status`, 'desc')
+    .orderBy(`${TABLE_NAME}.date`, 'asc')
 
   if (date) {
     rows.whereBetween('date', [`${date} 00:00:00`, `${date} 23:59:59`])
