@@ -271,3 +271,19 @@ export const guessPointsStrategy = {
     return points + bonusPoints
   }
 }
+
+const calculateChampionshipGuessPointsGrouped = (guess) => {
+  const championshipTeamPosition = guess.championship.positions.find(
+    ({ position }) => guess.position === position
+  )
+
+  return guess.teamId === championshipTeamPosition.teamId &&
+    guess.position === championshipTeamPosition.position
+    ? 5 // ToDo
+    : 0
+}
+
+export const championshipGuessPointsStrategy = {
+  [GUESS_POINTS_STRATEGY.GROUPED]: (guess) =>
+    calculateChampionshipGuessPointsGrouped(guess)
+}

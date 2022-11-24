@@ -18,7 +18,7 @@ const columns = [
   'round',
   'result',
   'date',
-  'status',
+  // 'status',
   'createdAt',
   'updatedAt',
   'homeTeamName',

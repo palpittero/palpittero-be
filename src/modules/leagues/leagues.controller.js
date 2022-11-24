@@ -191,8 +191,10 @@ const updateLeague = async (req, res) => {
 
   await leaguesChampionshipsModel.replace(leaguesChampionships)
 
-  const existingUsers = users.filter((user) => user?.name)
-  const existingNonLeagueUsers = existingUsers.filter((user) => !user.status)
+  const existingUsers = users.filter((user) => user?.id)
+  const existingNonLeagueUsers = existingUsers.filter(
+    (user) => !user.status && !user?.owner
+  )
 
   await usersLeaguesModel.deleteByLeague(leagueId)
 
@@ -251,6 +253,7 @@ const updateLeague = async (req, res) => {
   const leaguesInvitationsEmails = (
     await leaguesInvitationsModel.fetchAll({ leagueId })
   ).map(({ email }) => email)
+
   const leaguesInvitationsToBeDeleted = difference(
     leaguesInvitationsEmails,
     nonExistingUsersEmails

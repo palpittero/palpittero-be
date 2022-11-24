@@ -1,9 +1,14 @@
-const { pipe, filter, reduce, pick } = lodash
 import lodash from 'lodash/fp'
-import { TABLE_FIELDS } from '../../models/guesses.model'
+const { pipe, filter, reduce, pick, uniqBy } = lodash
+// const { pipe, filter, reduce, pick } = lodash
+import { TABLE_FIELDS as MATCHES_GUESSES_TABLE_FIELDS } from '../../models/guesses.model'
+import { TABLE_FIELDS as CHAMPIONSHIPS_GUESSES_TABLE_FIELDS } from '../../models/championshipsGuesses.model'
 import { MATCH_STATUSES } from '../matches/matches.constants'
 
-import { guessPointsStrategy } from './guessesReport.strategy'
+import {
+  guessPointsStrategy,
+  championshipGuessPointsStrategy
+} from './guessesReport.strategy'
 
 export const calculateGuessesPoints = (guesses) =>
   pipe(
@@ -14,15 +19,31 @@ export const calculateGuessesPoints = (guesses) =>
       return [
         ...result,
         {
-          ...pick(TABLE_FIELDS, guess),
+          ...pick(MATCHES_GUESSES_TABLE_FIELDS, guess),
           points
         }
       ]
     }, [])
   )(guesses)
 
-export const parseRegisterGuesses = ({ guesses, userId }) =>
-  guesses.map(
+export const calculateChampionshipsGuessesPoints = (guesses) =>
+  pipe(
+    // filter(({ match }) => match.status === MATCH_STATUSES.FINISHED),
+    reduce((result, guess) => {
+      const points = championshipGuessPointsStrategy.grouped(guess)
+
+      return [
+        ...result,
+        {
+          ...pick(CHAMPIONSHIPS_GUESSES_TABLE_FIELDS, guess),
+          points
+        }
+      ]
+    }, [])
+  )(guesses)
+
+export const parseRegisterMatchesGuesses = ({ matchesGuesses, userId }) =>
+  matchesGuesses.map(
     ({
       homeTeamRegularTimeGoals,
       awayTeamRegularTimeGoals,
@@ -40,3 +61,25 @@ export const parseRegisterGuesses = ({ guesses, userId }) =>
       userId
     })
   )
+
+export const parseRegisterChampionshipsGuesses = (championshipsGuesses) =>
+  championshipsGuesses
+    .filter(({ teamId }) => teamId)
+    .map(({ leagueId, userId, teamId, championshipId, position }) => ({
+      championshipId,
+      leagueId,
+      userId,
+      teamId,
+      position
+    }))
+
+export const parseDeleteChampionshipsGuesses = (championshipsGuesses) =>
+  uniqBy(
+    ({ championshipId, leagueId, userId }) =>
+      [championshipId, leagueId, userId].join(),
+    championshipsGuesses
+  ).map(({ championshipId, leagueId, userId }) => ({
+    championshipId,
+    leagueId,
+    userId
+  }))
