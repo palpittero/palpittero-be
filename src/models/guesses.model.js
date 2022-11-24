@@ -118,8 +118,8 @@ const fetchAll = async ({
     .join('users AS user', 'user.id', `${TABLE_NAME}.userId`)
     .join('leagues AS league', 'league.id', `${TABLE_NAME}.leagueId`)
     .join('matches', 'matches.id', `${TABLE_NAME}.matchId`)
-    .join('teams AS homeTeam', 'homeTeam.id', 'match.homeTeamId')
-    .join('teams AS awayTeam', 'awayTeam.id', 'match.awayTeamId')
+    .join('teams AS homeTeam', 'homeTeam.id', 'matches.homeTeamId')
+    .join('teams AS awayTeam', 'awayTeam.id', 'matches.awayTeamId')
     .join(
       'leaguesChampionships AS leagueChampionship',
       'leagueChampionship.leagueId',
@@ -131,7 +131,7 @@ const fetchAll = async ({
       'championship.id'
     )
 
-    .join('rounds AS round', 'match.roundId', 'round.id')
+    .join('rounds AS round', 'matches.roundId', 'round.id')
     .where(
       appendWhere({
         userId,
@@ -224,7 +224,7 @@ const appendWhere = ({ userId, leagueId, championshipId, matchId, roundId }) =>
     userId,
     'guesses.leagueId': leagueId,
     matchId,
-    'match.roundId': roundId,
+    'matches.roundId': roundId,
     'round.championshipId': championshipId
   })
 
