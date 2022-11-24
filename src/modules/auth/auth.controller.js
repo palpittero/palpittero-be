@@ -5,6 +5,7 @@ import omit from 'lodash/fp/omit'
 import { generateTokens } from '../../utils/auth'
 import { STATUS } from '../../shared/constants'
 import {
+  resendActivationEmail,
   sendAccountCreationEmail,
   sendLeagueInvitationEmail,
   sendPasswordResetEmail
@@ -239,6 +240,10 @@ const recoverPassword = async (req, res) => {
     return res.sendStatus(404)
   }
 
+  if (user.status !== STATUS.ACTIVE) {
+    return res.sendStatus(403)
+  }
+
   const token = jwt.sign({ email }, process.env.AUTH_TOKEN_SECRET, {
     expiresIn: process.env.AUTH_TOKEN_EXPIRES_IN
   })
@@ -309,6 +314,23 @@ const validate = async (req, res) => {
   return res.sendStatus(200)
 }
 
+const resendActivation = async (req, res) => {
+  const { email } = req.body
+
+  const user = await usersModel.fetchByEmail(email)
+
+  if (!user) {
+    return res.sendStatus(404)
+  }
+
+  const token = jwt.sign({ email }, process.env.AUTH_TOKEN_SECRET, {
+    expiresIn: process.env.AUTH_TOKEN_EXPIRES_IN
+  })
+
+  await resendActivationEmail({ name: user.name, token, email })
+  return res.sendStatus(200)
+}
+
 export {
   authenticate,
   refreshToken,
@@ -318,5 +340,6 @@ export {
   recoverPassword,
   activateAccount,
   resetPassword,
-  validate
+  validate,
+  resendActivation
 }

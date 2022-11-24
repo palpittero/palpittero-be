@@ -180,6 +180,30 @@ const emailProcessedGUesses = () => {
   }
 }
 
+const resendActivation = ({ name, token }) => {
+  const subject = 'Ative a sua conta Palpittero'
+
+  const html = `<p>Olá ${name},</p>
+
+  <p>Clique no link abaixo para ativar a sua conta.</p>
+
+  <p>
+    <a href="${getAppRoute(process.env.EMAIL_ACCOUNT_ACTIVATION_ROUTE, {
+      token
+    })}" target="_blank">
+      Ativar Conta
+    <a>
+  </p>
+  <br />
+
+  Palpittero`
+
+  return {
+    subject,
+    html
+  }
+}
+
 export default {
   [EMAILS_TYPES.ACTIVATION]: activation,
   [EMAILS_TYPES.EMAIL_CHANGE]: emailChange,
@@ -188,5 +212,6 @@ export default {
   [EMAILS_TYPES.PRIVATE_LEAGUE_USER_INVITATION]: emailLeagueUserInvitation,
   [EMAILS_TYPES.PRIVATE_LEAGUE_ANONYMOUS_INVITATION]:
     emailLeagueAnonymousInvitation,
-  [EMAILS_TYPES.PROCESSED_GUESSES]: emailProcessedGUesses
+  [EMAILS_TYPES.PROCESSED_GUESSES]: emailProcessedGUesses,
+  [EMAILS_TYPES.RESEND_ACTIVATION]: resendActivation
 }

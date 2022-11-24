@@ -9,6 +9,7 @@ import {
   resetPassword,
   signUp,
   activateAccount,
+  resendActivation,
   validate as validateToken
 } from './auth.controller'
 
@@ -22,6 +23,7 @@ router.post('/recoverPassword', recoverPassword)
 router.put('/resetPassword', resetPassword)
 router.post('/refreshToken', validateAccessToken, refreshToken)
 router.post('/updatePassword', validateAccessToken, updatePassword)
+router.post('/resendActivation', resendActivation)
 router.get('/me', validateAccessToken, getLoggedUser)
 
 export default router

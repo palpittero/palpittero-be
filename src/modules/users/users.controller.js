@@ -4,7 +4,7 @@ import usersLeaguesModel from '../../models/usersLeagues.model'
 // import guessesModel from '../../models/guesses.model'
 import { signUp } from '../auth/auth.controller'
 import {
-  sendEmailActivationEmail,
+  sendActivationEmail,
   sendEmailChangeEmail
 } from '../email/email.service'
 // import leaguesModel from '../../models/leagues.model'
@@ -62,7 +62,7 @@ const updateUser = async (req, res) => {
 
   if (email !== user.email) {
     await sendEmailChangeEmail({ name, email, to: user.email })
-    await sendEmailActivationEmail({ name, email })
+    await sendActivationEmail({ name, email })
   }
 
   return res.json({
