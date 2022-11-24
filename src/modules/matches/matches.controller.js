@@ -100,10 +100,11 @@ const updateMatch = async (req, res) => {
     extraTimeAwayTeamGoals,
     penaltiesTimeHomeTeamGoals,
     penaltiesTimeAwayTeamGoals,
-    result
-    // status
+    result,
+    resetStatus
   } = req.body
 
+  const status = resetStatus ? null : req.body.status
   const parsedDate = new Date(date)
 
   await matchesModel.update({
@@ -118,8 +119,9 @@ const updateMatch = async (req, res) => {
     extraTimeAwayTeamGoals,
     penaltiesTimeHomeTeamGoals,
     penaltiesTimeAwayTeamGoals,
-    result
-    // status
+    result,
+    // resetStatus,
+    status
   })
 
   return res.json({

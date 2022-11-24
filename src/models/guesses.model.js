@@ -4,7 +4,8 @@ import pick from 'lodash/fp/pick'
 import omit from 'lodash/fp/omit'
 import pickBy from 'lodash/fp/pickBy'
 import identity from 'lodash/fp/identity'
-import { DB_DEFAULT_DATE_FN } from '../config/database'
+import { MATCH_STATUS_QUERY } from './matches.model'
+// import { DB_DEFAULT_DATE_FN } from '../config/database'
 
 const TABLE_NAME = 'guesses'
 
@@ -23,21 +24,21 @@ export const TABLE_FIELDS = [
   'updatedAt'
 ]
 
-const MATCH_STATUS_QUERY = `
-  IF(
-    ${DB_DEFAULT_DATE_FN} > DATE_ADD(date, INTERVAL 240 MINUTE),
-    "finished",
-    IF(
-      ${DB_DEFAULT_DATE_FN} < date AND DATE_ADD(${DB_DEFAULT_DATE_FN}, INTERVAL 15 MINUTE) > date,
-      "preparation",
-      IF (
-        ${DB_DEFAULT_DATE_FN} < DATE_ADD(date, INTERVAL 240 MINUTE) AND ${DB_DEFAULT_DATE_FN} > date,
-        "in_progress",
-        "scheduled"
-      )
-    )
-  ) AS status
-`
+// const MATCH_STATUS_QUERY = `
+//   IF(
+//     ${DB_DEFAULT_DATE_FN} > DATE_ADD(date, INTERVAL 240 MINUTE),
+//     "finished",
+//     IF(
+//       ${DB_DEFAULT_DATE_FN} < date AND DATE_ADD(${DB_DEFAULT_DATE_FN}, INTERVAL 15 MINUTE) > date,
+//       "preparation",
+//       IF (
+//         ${DB_DEFAULT_DATE_FN} < DATE_ADD(date, INTERVAL 240 MINUTE) AND ${DB_DEFAULT_DATE_FN} > date,
+//         "in_progress",
+//         "scheduled"
+//       )
+//     )
+//   ) AS status
+// `
 
 const guessesModel = baseModel(TABLE_NAME)
 
@@ -89,17 +90,17 @@ const fetchAll = async ({
     .select([
       `${TABLE_NAME}.*`,
       // 'match.*',
-      'match.roundId',
-      'match.homeTeamId',
-      'match.awayTeamId',
-      'match.regularTimeHomeTeamGoals',
-      'match.regularTimeAwayTeamGoals',
-      'match.extraTimeHomeTeamGoals',
-      'match.extraTimeAwayTeamGoals',
-      'match.penaltiesTimeHomeTeamGoals',
-      'match.penaltiesTimeAwayTeamGoals',
-      'match.date',
-      'match.result',
+      'matches.roundId',
+      'matches.homeTeamId',
+      'matches.awayTeamId',
+      'matches.regularTimeHomeTeamGoals',
+      'matches.regularTimeAwayTeamGoals',
+      'matches.extraTimeHomeTeamGoals',
+      'matches.extraTimeAwayTeamGoals',
+      'matches.penaltiesTimeHomeTeamGoals',
+      'matches.penaltiesTimeAwayTeamGoals',
+      'matches.date',
+      'matches.result',
       // 'match.status',
       'user.name AS userName',
       'user.email AS userEmail',
@@ -116,7 +117,7 @@ const fetchAll = async ({
     ])
     .join('users AS user', 'user.id', `${TABLE_NAME}.userId`)
     .join('leagues AS league', 'league.id', `${TABLE_NAME}.leagueId`)
-    .join('matches AS match', 'match.id', `${TABLE_NAME}.matchId`)
+    .join('matches', 'matches.id', `${TABLE_NAME}.matchId`)
     .join('teams AS homeTeam', 'homeTeam.id', 'match.homeTeamId')
     .join('teams AS awayTeam', 'awayTeam.id', 'match.awayTeamId')
     .join(
