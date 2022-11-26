@@ -42,24 +42,46 @@ export const calculateChampionshipsGuessesPoints = (guesses) =>
     }, [])
   )(guesses)
 
-export const parseRegisterMatchesGuesses = ({ matchesGuesses, userId }) =>
-  matchesGuesses.map(
-    ({
-      homeTeamRegularTimeGoals,
-      awayTeamRegularTimeGoals,
-      homeTeamPenaltiesTimeGoals,
-      awayTeamPenaltiesTimeGoals,
-      leagueId,
-      matchId
-    }) => ({
-      homeTeamRegularTimeGoals,
-      awayTeamRegularTimeGoals,
-      homeTeamPenaltiesTimeGoals,
-      awayTeamPenaltiesTimeGoals,
-      leagueId,
-      matchId,
-      userId
-    })
+export const parseRegisterMatchesGuesses = ({
+  matchesGuesses,
+  userId,
+  matchesStatuses
+}) =>
+  matchesGuesses.reduce(
+    (
+      acc,
+      {
+        homeTeamRegularTimeGoals,
+        awayTeamRegularTimeGoals,
+        homeTeamPenaltiesTimeGoals,
+        awayTeamPenaltiesTimeGoals,
+        leagueId,
+        matchId
+      }
+    ) => {
+      const guess = {
+        homeTeamRegularTimeGoals,
+        awayTeamRegularTimeGoals,
+        homeTeamPenaltiesTimeGoals,
+        awayTeamPenaltiesTimeGoals,
+        leagueId,
+        matchId,
+        userId
+      }
+
+      const isGuessValid = matchesStatuses[matchId] === MATCH_STATUSES.SCHEDULED
+
+      return isGuessValid
+        ? {
+            ...acc,
+            validGuesses: [...acc.validGuesses, guess]
+          }
+        : {
+            ...acc,
+            invalidGuesses: [...acc.invalidGuesses, guess]
+          }
+    },
+    { validGuesses: [], invalidGuesses: [] }
   )
 
 export const parseRegisterChampionshipsGuesses = (championshipsGuesses) =>

@@ -10,6 +10,8 @@ import {
   // parseRegisterChampionshipsGuesses
 } from './guesses.helpers'
 import { sendProcessedGuessesEmail } from '../email/email.service'
+import matchesModel from '../../models/matches.model'
+import { parseMatchesStatuses } from '../matches/matches.helpers'
 
 const getGuesses = async (req, res) => {
   const { userId, leagueId, matchId, roundId } = req.query
@@ -62,13 +64,20 @@ const createGuess = async (req, res) => {
 const registerGuesses = async (req, res) => {
   const { matchesGuesses, championshipsGuesses } = req.body
   const userId = res.locals.jwt.user.id
-  const parsedMatchesGuesses = parseRegisterMatchesGuesses({
+
+  const matchesIds = uniq(matchesGuesses.map(({ matchId }) => matchId))
+
+  const matches = await matchesModel.fetchAll({ ids: matchesIds })
+  const matchesStatuses = parseMatchesStatuses(matches)
+
+  const { validGuesses, invalidGuesses } = parseRegisterMatchesGuesses({
     matchesGuesses,
-    userId
+    userId,
+    matchesStatuses
   })
 
-  if (parsedMatchesGuesses.length > 0) {
-    await guessesModel.replace(parsedMatchesGuesses)
+  if (validGuesses.length > 0) {
+    await guessesModel.replace(validGuesses)
   }
 
   const championshipGuessesToDelete =
@@ -96,7 +105,11 @@ const registerGuesses = async (req, res) => {
     )
   }
 
-  return res.sendStatus(201)
+  return res.json({
+    data: {
+      invalidGuesses: invalidGuesses.length
+    }
+  })
 }
 
 const updateGuess = async (req, res) => {
