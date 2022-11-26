@@ -81,7 +81,7 @@ const fetchById = async (id) => {
   return appendEntities(rows)[0]
 }
 
-const fetchAll = async ({ status, date, roundId }) => {
+const fetchAll = async ({ status, date, roundId } = {}, { ids } = {}) => {
   const rows = await knex(TABLE_NAME)
     .select([
       `${TABLE_NAME}.*`,
@@ -115,6 +115,7 @@ const fetchAll = async ({ status, date, roundId }) => {
       `championship.id`
     )
     .where(appendWhere({ status, roundId }))
+    .where(appendWhereIn({ ids }))
     .orderBy(`status`, 'desc')
     .orderBy(`${TABLE_NAME}.date`, 'asc')
 
@@ -232,6 +233,14 @@ const appendWhere = ({ status, roundId }) =>
     [`${TABLE_NAME}.status`]: status,
     [`${TABLE_NAME}.roundId`]: roundId
   })
+
+const appendWhereIn = ({ ids }) =>
+  isNil(ids)
+    ? {}
+    : {
+        columnName: `${TABLE_NAME}.id`,
+        values: ids
+      }
 
 export default {
   ...matchesModel,
