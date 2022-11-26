@@ -5,6 +5,7 @@ import omit from 'lodash/fp/omit'
 import pickBy from 'lodash/fp/pickBy'
 import identity from 'lodash/fp/identity'
 import { MATCH_STATUS_QUERY } from './matches.model'
+import { MATCH_STATUSES } from '../modules/matches/matches.constants'
 // import { DB_DEFAULT_DATE_FN } from '../config/database'
 
 const TABLE_NAME = 'guesses'
@@ -228,8 +229,41 @@ const appendWhere = ({ userId, leagueId, championshipId, matchId, roundId }) =>
     'round.championshipId': championshipId
   })
 
+const fetchByUserLeagueChampionships = async ({
+  userId,
+  leagueId,
+  championshipsIds
+}) =>
+  await knex(TABLE_NAME)
+    .select([
+      `${TABLE_NAME}.*`,
+      knex.raw(MATCH_STATUS_QUERY.replace(' AS status', ' AS matchStatus'))
+    ])
+    .join('matches', 'matches.id', `${TABLE_NAME}.matchId`)
+    .join(
+      'leaguesChampionships',
+      'leaguesChampionships.leagueId',
+      `${TABLE_NAME}.leagueId`
+    )
+    .join('rounds', function () {
+      this.on('rounds.id', '=', 'matches.roundId').andOn(
+        'rounds.championshipId',
+        '=',
+        `leaguesChampionships.championshipId`
+      )
+    })
+
+    .where({
+      userId,
+      [`${TABLE_NAME}.leagueId`]: leagueId
+    })
+    .whereIn(`leaguesChampionships.championshipId`, championshipsIds)
+    .groupBy(`${TABLE_NAME}.id`)
+    .having('matchStatus', '=', MATCH_STATUSES.SCHEDULED)
+
 export default {
   ...guessesModel,
   fetchById,
-  fetchAll
+  fetchAll,
+  fetchByUserLeagueChampionships
 }

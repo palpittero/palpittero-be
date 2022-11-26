@@ -6,7 +6,8 @@ import {
   updateGuess,
   deleteGuess,
   processGuesses,
-  registerGuesses
+  registerGuesses,
+  copyGuesses
 } from './guesses.controller'
 
 const router = Router()
@@ -30,5 +31,6 @@ router.put('/:id', updateGuess)
 router.delete('/:id', deleteGuess)
 router.post('/process', processGuesses)
 router.post('/register', registerGuesses)
+router.post('/copy', copyGuesses)
 
 export default router

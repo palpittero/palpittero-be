@@ -84,6 +84,38 @@ export const parseRegisterMatchesGuesses = ({
     { validGuesses: [], invalidGuesses: [] }
   )
 
+export const parseCopyMatchesGuesses = ({ matchesGuesses, targetLeagueId }) =>
+  matchesGuesses.map(
+    ({
+      homeTeamRegularTimeGoals,
+      awayTeamRegularTimeGoals,
+      homeTeamPenaltiesTimeGoals,
+      awayTeamPenaltiesTimeGoals,
+      userId,
+      matchId
+    }) => ({
+      homeTeamRegularTimeGoals,
+      awayTeamRegularTimeGoals,
+      homeTeamPenaltiesTimeGoals,
+      awayTeamPenaltiesTimeGoals,
+      leagueId: targetLeagueId,
+      userId,
+      matchId
+    })
+  )
+
+export const parseCopyChampionshipsGuesses = ({
+  championshipsGuesses,
+  targetLeagueId
+}) =>
+  championshipsGuesses.map(({ userId, teamId, championshipId, position }) => ({
+    leagueId: targetLeagueId,
+    userId,
+    teamId,
+    championshipId,
+    position
+  }))
+
 export const parseRegisterChampionshipsGuesses = (championshipsGuesses) =>
   championshipsGuesses
     .filter(({ teamId }) => teamId)

@@ -1,9 +1,13 @@
 import uniq from 'lodash/fp/uniq'
+import intersection from 'lodash/fp/intersection'
 import guessesModel from '../../models/guesses.model'
 import championshipsGuessesModel from '../../models/championshipsGuesses.model'
+import championshipsModel from '../../models/championships.model'
 import {
   calculateChampionshipsGuessesPoints,
   calculateGuessesPoints,
+  parseCopyChampionshipsGuesses,
+  parseCopyMatchesGuesses,
   parseDeleteChampionshipsGuesses,
   parseRegisterChampionshipsGuesses,
   parseRegisterMatchesGuesses
@@ -83,6 +87,8 @@ const registerGuesses = async (req, res) => {
   const championshipGuessesToDelete =
     parseDeleteChampionshipsGuesses(championshipsGuesses)
 
+  console.log({ championshipGuessesToDelete })
+
   if (championshipGuessesToDelete.length > 0) {
     await Promise.all(
       championshipGuessesToDelete.map(
@@ -100,9 +106,7 @@ const registerGuesses = async (req, res) => {
     parseRegisterChampionshipsGuesses(championshipsGuesses)
 
   if (parsedChampionshipsGuesses.length > 0) {
-    await championshipsGuessesModel.replace(
-      parsedChampionshipsGuesses.filter(({ teamId }) => teamId)
-    )
+    await championshipsGuessesModel.replace(parsedChampionshipsGuesses)
   }
 
   return res.json({
@@ -189,6 +193,75 @@ const processGuesses = async (req, res) => {
   return res.sendStatus(200)
 }
 
+const copyGuesses = async (req, res) => {
+  const userId = res.locals.jwt.user.id
+  const {
+    sourceLeagueId,
+    targetLeagueId,
+    championshipsIds,
+    copyMatchesGuesses,
+    copyChampionshipsGuesses
+  } = req.body
+  let total = 0
+
+  const targetLeagueChampionshipsIds = (
+    await championshipsModel.fetchByLeague({
+      leagueId: targetLeagueId
+    })
+  ).map(({ id }) => id)
+
+  const commonChampionshipsIds = intersection(
+    targetLeagueChampionshipsIds,
+    championshipsIds
+  )
+
+  if (copyMatchesGuesses) {
+    const userMatchesGuesses =
+      await guessesModel.fetchByUserLeagueChampionships({
+        userId,
+        leagueId: sourceLeagueId,
+        championshipsIds: commonChampionshipsIds
+      })
+
+    const matchesGuesses = parseCopyMatchesGuesses({
+      matchesGuesses: userMatchesGuesses,
+      targetLeagueId
+    })
+
+    if (matchesGuesses.length > 0) {
+      await guessesModel.replace(matchesGuesses)
+    }
+
+    total += matchesGuesses.length
+  }
+
+  if (copyChampionshipsGuesses) {
+    const userChampionshipsGuesses =
+      await championshipsGuessesModel.fetchByUserLeagueChampionships({
+        userId,
+        leagueId: sourceLeagueId,
+        championshipsIds: commonChampionshipsIds
+      })
+
+    const championshipsGuesses = parseCopyChampionshipsGuesses({
+      championshipsGuesses: userChampionshipsGuesses,
+      targetLeagueId
+    })
+
+    if (championshipsGuesses.length > 0) {
+      await championshipsGuessesModel.replace(championshipsGuesses)
+    }
+
+    total += championshipsGuesses.length
+  }
+
+  return res.json({
+    data: {
+      total
+    }
+  })
+}
+
 export {
   getGuesses,
   getGuess,
@@ -196,5 +269,6 @@ export {
   updateGuess,
   deleteGuess,
   processGuesses,
-  registerGuesses
+  registerGuesses,
+  copyGuesses
 }
