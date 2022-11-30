@@ -31,6 +31,7 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT }}
           script: |
+            docker exec palpittero-be-mysql /bin/bash -c 'exec mysqldump --databases palpittero -uroot -p"$MYSQL_ROOT_PASSWORD"' > /root/backup/palpittero_$(date +"%Y-%m-%d-%H%-M").sql
             cd /home/app/palpittero/palpittero-be/production
             npm install
             cp /home/app/palpittero/palpittero-be/.env.production /home/app/palpittero/palpittero-be/production/.env.production
