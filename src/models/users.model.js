@@ -63,7 +63,7 @@ const appendEntities = (rows) => {
     ...omit(USERS_LEAGUES_FIELDS, row),
     status: row.usersLeaguesStatus,
     owner: row.usersLeaguesOwner,
-    points: row.points
+    points: parseInt(row.points || 0)
   }))
 }
 

@@ -17,6 +17,8 @@ import { EMAIL_LEAGUE_VISIBILITY } from '../email/email.constants'
 import { safeJSONParse } from '../../utils/misc'
 import { USERS_LEAGUES_STATUSES } from '../usersLeagues/usersLeagues.constants'
 import { LEAGUES_INVITATIONS_STATUSES } from '../leaguesInvitations/leaguesInvitations.constants'
+import leaguesPrizesModel from '../../models/leaguesPrizes.model'
+import { appendLeaguesPrizes } from '../leaguesPrizes/leaguesPrizes.helpers'
 
 const getLeagues = async (req, res) => {
   const { private: isPrivate, ownerId } = req.query
@@ -54,12 +56,16 @@ const createLeague = async (req, res) => {
     pointsStrategy,
     private: isPrivate,
     users: rawUsers,
+    prizes: rawPrizes,
     championships: rawChampionships,
+    enablePrizes,
+    ticketValue,
     status
   } = req.body
 
   const users = safeJSONParse(rawUsers)
   const championships = safeJSONParse(rawChampionships)
+  const prizes = safeJSONParse(rawPrizes)
 
   const badge = req.file?.path ? req.file?.path : req.body.badge
   const ownerId = users.find(({ owner }) => owner)?.id || res.locals.jwt.user.id
@@ -73,6 +79,8 @@ const createLeague = async (req, res) => {
     badge,
     pointsStrategy,
     private: isPrivate,
+    enablePrizes,
+    ticketValue,
     status
   })
 
@@ -81,7 +89,18 @@ const createLeague = async (req, res) => {
     championships
   })
 
-  await leaguesChampionshipsModel.replace(leaguesChampionships)
+  if (leaguesChampionships.length > 0) {
+    await leaguesChampionshipsModel.replace(leaguesChampionships)
+  }
+
+  const leaguesPrizes = appendLeaguesPrizes({
+    leagueId,
+    prizes
+  })
+
+  if (leaguesPrizes.length > 0) {
+    await leaguesPrizesModel.replace(leaguesPrizes)
+  }
 
   const existingUsers = users.filter((user) => user?.id)
   const nonExistingUsers = users.filter((user) => !user?.id)
@@ -154,6 +173,9 @@ const updateLeague = async (req, res) => {
     pointsStrategy,
     private: isPrivate,
     users: rawUsers,
+    enablePrizes,
+    ticketValue,
+    prizes: rawPrizes,
     championships: rawChampionships,
     status,
     resendInvitations
@@ -167,6 +189,7 @@ const updateLeague = async (req, res) => {
 
   const users = safeJSONParse(rawUsers)
   const championships = safeJSONParse(rawChampionships)
+  const prizes = safeJSONParse(rawPrizes)
 
   const badge = req.file?.path ? req.file?.path : req.body.badge3
   const ownerId = users.find(({ owner }) => owner)?.id || res.locals.jwt.user.id
@@ -180,16 +203,33 @@ const updateLeague = async (req, res) => {
     name,
     badge,
     pointsStrategy,
+    enablePrizes,
+    ticketValue,
     private: isPrivate,
     status
   })
+
+  await leaguesChampionshipsModel.delete({ leagueId })
 
   const leaguesChampionships = appendLeaguesChampionships({
     leagueId,
     championships
   })
 
-  await leaguesChampionshipsModel.replace(leaguesChampionships)
+  if (leaguesChampionships.length > 0) {
+    await leaguesChampionshipsModel.replace(leaguesChampionships)
+  }
+
+  await leaguesPrizesModel.delete({ leagueId })
+
+  const leaguesPrizes = appendLeaguesPrizes({
+    leagueId,
+    prizes
+  })
+
+  if (leaguesPrizes.length > 0) {
+    await leaguesPrizesModel.replace(leaguesPrizes)
+  }
 
   const existingUsers = users.filter((user) => user?.id)
   const existingNonLeagueUsers = existingUsers.filter(
@@ -328,6 +368,9 @@ const getLeagueUsers = async (req, res) => {
   }
 
   const leagueUsers = await usersModel.fetchByLeague({ leagueId: id, status })
+  // const totalTicketsAmount = league.enablePrizes
+  //   ? parseFloat(league.ticketValue) * leagueUsers.length
+  //   : 0
 
   const leaguesInvitations = status
     ? []
@@ -340,6 +383,7 @@ const getLeagueUsers = async (req, res) => {
       )
 
   const users = uniqBy('email', [...leagueUsers, ...leaguesInvitations])
+
   return res.json({
     data: users
   })
