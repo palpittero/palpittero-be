@@ -231,7 +231,7 @@ const updateLeague = async (req, res) => {
     await leaguesPrizesModel.replace(leaguesPrizes)
   }
 
-  const existingUsers = users.filter((user) => user?.id)
+  const existingUsers = users.filter((user) => user?.name)
   const existingNonLeagueUsers = existingUsers.filter(
     (user) => !user.status && !user?.owner
   )
