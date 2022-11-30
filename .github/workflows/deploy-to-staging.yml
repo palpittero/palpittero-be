@@ -6,7 +6,7 @@ on:
 
 jobs:
   deploy:
-    name: Staging Deployment
+    name: Deploying to Staging
     runs-on: ubuntu-latest
 
     steps:
@@ -31,7 +31,6 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            docker exec 2c0e2c16cd83 /bin/bash -c 'exec mysqldump --databases palpittero-staging -uroot -p"$MYSQL_ROOT_PASSWORD"' > /root/backup/palpittero-staging_$(date +"%Y%m%d%H%M").sql
             cd /home/app/palpittero/palpittero-be/staging
             npm install
             cp /home/app/palpittero/palpittero-be/.env.staging /home/app/palpittero/palpittero-be/staging/.env.staging
