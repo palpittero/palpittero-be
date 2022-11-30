@@ -10,6 +10,7 @@ module.exports = {
         ['championshipId', 'leagueId', 'userId', 'teamId'],
         'championshipsguesses_unique_index'
       )
+
       table
         .integer('userId')
         .unsigned()
@@ -42,6 +43,7 @@ module.exports = {
         .inTable('teams')
         .onDelete('CASCADE')
         .alter()
+
       table.unique(
         ['championshipId', 'leagueId', 'userId'],
         'championshipsguesses_unique_index'
@@ -51,10 +53,10 @@ module.exports = {
 
   down: function (knex) {
     return knex.schema.alterTable('championshipsGuesses', function (table) {
-      table.dropForeign('userId')
       table.dropForeign('championshipId')
       table.dropForeign('leagueId')
-      table.dropForeign('teamId')
+      table.dropForeign('userId')
+
       table.dropUnique(
         ['championshipId', 'leagueId', 'userId'],
         'championshipsguesses_unique_index'
@@ -84,14 +86,7 @@ module.exports = {
         .inTable('leagues')
         .onDelete('CASCADE')
         .alter()
-      table
-        .integer('teamId')
-        .unsigned()
-        .notNullable()
-        .references('id')
-        .inTable('teams')
-        .onDelete('CASCADE')
-        .alter()
+
       table.unique(
         ['championshipId', 'leagueId', 'userId', 'teamId'],
         'championshipsguesses_unique_index'
