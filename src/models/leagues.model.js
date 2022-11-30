@@ -6,7 +6,9 @@ import values from 'lodash/fp/values'
 import reduce from 'lodash/fp/reduce'
 import omitBy from 'lodash/fp/omitBy'
 import isNil from 'lodash/fp/isNil'
+import uniqBy from 'lodash/fp/uniqBy'
 import { STATUS } from '../shared/constants'
+// import { uniqBy } from 'lodash'
 
 const TABLE_NAME = 'leagues'
 
@@ -16,6 +18,8 @@ const columns = [
   'badge',
   'private',
   'pointsStrategy',
+  'enablePrizes',
+  'ticketValue',
   'status',
   'createdAt',
   'updatedAt'
@@ -38,10 +42,15 @@ const fetchAll = async ({
       'usersLeagues.status AS usersLeaguesStatus',
       'usersLeagues.leagueId AS usersLeaguesLeagueId',
       'users.name AS userName',
-      'users.email AS userEmail'
+      'users.email AS userEmail',
+      'leaguesPrizes.position AS leaguesPrizesPosition',
+      'leaguesPrizes.amount AS leaguesPrizesAmount',
+      'leaguesPrizes.id AS leaguesPrizesId'
+      // knex.raw('COUNT(users.name) AS totalUsers')
     ])
     .leftJoin('usersLeagues', 'usersLeagues.leagueId', `${TABLE_NAME}.id`)
     .leftJoin('users', 'users.id', `usersLeagues.userId`)
+    .leftJoin('leaguesPrizes', 'leaguesPrizes.leagueId', `${TABLE_NAME}.id`)
     .where(
       appendWhere({
         isPrivate,
@@ -50,6 +59,7 @@ const fetchAll = async ({
       })
     )
     .where(`${TABLE_NAME}.status`, '<>', STATUS.DELETED)
+    .groupBy(['usersLeaguesId', `leaguesPrizesId`])
 
   if (ownerId) {
     query.whereRaw(
@@ -79,12 +89,17 @@ const fetchById = async (id) => {
       'usersLeagues.status AS usersLeaguesStatus',
       'usersLeagues.leagueId AS usersLeaguesLeagueId',
       'users.name AS userName',
-      'users.email AS userEmail'
+      'users.email AS userEmail',
+      'leaguesPrizes.position AS leaguesPrizesPosition',
+      'leaguesPrizes.amount AS leaguesPrizesAmount',
+      'leaguesPrizes.id AS leaguesPrizesId'
     ])
     .leftJoin('usersLeagues', 'usersLeagues.leagueId', `${TABLE_NAME}.id`)
     .leftJoin('users', 'users.id', `usersLeagues.userId`)
+    .leftJoin('leaguesPrizes', 'leaguesPrizes.leagueId', `${TABLE_NAME}.id`)
     .where({ [`${TABLE_NAME}.id`]: id })
     .where(`${TABLE_NAME}.status`, '<>', STATUS.DELETED)
+    .groupBy(['usersLeaguesId', `leaguesPrizesId`])
 
   return appendEntities(rows)[0]
 }
@@ -100,10 +115,14 @@ const fetchByIds = async (ids) => {
       'usersLeagues.status AS usersLeaguesStatus',
       'usersLeagues.leagueId AS usersLeaguesLeagueId',
       'users.name AS userName',
-      'users.email AS userEmail'
+      'users.email AS userEmail',
+      'leaguesPrizes.position AS leaguesPrizesPosition',
+      'leaguesPrizes.amount AS leaguesPrizesAmount',
+      'leaguesPrizes.id AS leaguesPrizesId'
     ])
     .leftJoin('usersLeagues', 'usersLeagues.leagueId', `${TABLE_NAME}.id`)
     .leftJoin('users', 'users.id', `usersLeagues.userId`)
+    .leftJoin('leaguesPrizes', 'leaguesPrizes.leagueId', `${TABLE_NAME}.id`)
     .whereIn(`${TABLE_NAME}.id`, ids)
     .where(`${TABLE_NAME}.status`, '<>', STATUS.DELETED)
 
@@ -135,7 +154,10 @@ const appendEntities = (rows) =>
         'usersLeaguesLeagueId',
         'userName',
         'userEmail',
-        'userId'
+        'userId',
+        'leaguesPrizesId',
+        'leaguesPrizesPosition',
+        'leaguesPrizesAmount'
       ]
 
       const user = {
@@ -153,11 +175,21 @@ const appendEntities = (rows) =>
         ? [...(result[row.id]?.users || []), user]
         : result[row.id]?.users || []
 
+      const prize = {
+        position: row.leaguesPrizesPosition,
+        amount: row.leaguesPrizesAmount
+      }
+
+      const prizes = row.leaguesPrizesId
+        ? [...(result[row.id]?.prizes || []), prize]
+        : result[row.id]?.prizes || []
+
       return {
         ...result,
         [row.id]: {
           ...omit(JOIN_FIELDS, row),
-          users
+          users: uniqBy('id', users),
+          prizes: uniqBy('position', prizes)
         }
       }
     }, {}),
