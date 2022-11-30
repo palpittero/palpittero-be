@@ -28,6 +28,7 @@ const fetchById = async (id) => {
     .select([
       `${TABLE_NAME}.*`,
       'championship.name AS championshipName',
+      'championship.year AS championshipYear',
       'user.name AS userName',
       'user.email AS userEmail',
       'league.name AS leagueName',
@@ -61,6 +62,7 @@ const fetchAll = async ({ userId, leagueId, championshipId } = {}) => {
     .select([
       `${TABLE_NAME}.*`,
       'championship.name AS championshipName',
+      'championship.year AS championshipYear',
       'user.name AS userName',
       'user.email AS userEmail',
       'league.name AS leagueName',
@@ -139,6 +141,7 @@ const appendEntities = (rows) =>
           'teamName',
           'teamBadge',
           'championshipName',
+          'championshipYear',
           'championshipTeamPositionPosition',
           'championshipTeamPositionPoints',
           'championshipTeamPositionTeamId'
@@ -171,6 +174,7 @@ const appendEntities = (rows) =>
             championship: {
               id: row.championshipId,
               name: row.championshipName,
+              year: row.championshipYear,
               positions
             },
             team: {
