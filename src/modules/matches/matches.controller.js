@@ -25,16 +25,17 @@ const getMatches = async (req, res) => {
 
     return {
       ...match,
-      group: {
-        ...match.group,
-        teams: teams.map(pick(['id', 'name', 'badge']))
-      }
+      group: match.group
+        ? {
+            ...match.group,
+            teams: teams.map(pick(['id', 'name', 'badge']))
+          }
+        : null
     }
   })
 
   res.json({
     data: uniqBy('id', parsedMatches)
-    // championshipsTeams
   })
 }
 

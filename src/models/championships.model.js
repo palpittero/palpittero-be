@@ -27,6 +27,7 @@ const fetchAll = async () => {
       'rounds.code AS roundCode',
       'rounds.name AS roundName',
       'rounds.type AS roundType',
+      'rounds.ignoreGroups AS roundIgnoreGroups',
       'groups.id AS groupId',
       'groups.code AS groupCode',
       'groups.name AS groupName',
@@ -109,7 +110,13 @@ const appendEntities = (rows) =>
     reduce((result, row) => {
       const TEAMS_FIELDS = ['teamId', 'teamName', 'teamBadge', 'championshipId']
       const TEAMS_CHAMPIONSHIPS_FIELDS = ['teamGroupId']
-      const ROUNDS_FIELDS = ['roundId', 'roundCode', 'roundName', 'roundType']
+      const ROUNDS_FIELDS = [
+        'roundId',
+        'roundCode',
+        'roundName',
+        'roundType',
+        'roundIgnoreGroups'
+      ]
       const GROUPS_FIELDS = ['groupId', 'groupCode', 'groupName']
       const CHAMPIONSHIPS_TEAMS_POSITIONS_FIELDS = [
         'teamPositionId',
@@ -129,7 +136,8 @@ const appendEntities = (rows) =>
         id: row.roundId,
         code: row.roundCode,
         name: row.roundName,
-        type: row.roundType
+        type: row.roundType,
+        ignoreGroups: row.roundIgnoreGroups
       }
 
       const group = {

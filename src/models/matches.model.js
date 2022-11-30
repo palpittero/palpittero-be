@@ -54,6 +54,7 @@ const fetchById = async (id) => {
       'round.name AS roundName',
       'round.code AS roundCode',
       'round.type AS roundType',
+      'round.ignoreGroups AS roundIgnoreGroups',
       'group.id AS groupId',
       'group.name AS groupName',
       'championship.id AS championshipId',
@@ -92,6 +93,7 @@ const fetchAll = async ({ status, date, roundId } = {}, { ids } = {}) => {
       'round.name AS roundName',
       'round.code AS roundCode',
       'round.type AS roundType',
+      'round.ignoreGroups AS roundIgnoreGroups',
       'group.id AS groupId',
       'group.name AS groupName',
       'championship.id AS championshipId',
@@ -137,6 +139,7 @@ const fetchByChampionship = async ({ championshipId }) => {
       'round.name AS roundName',
       'round.code AS roundCode',
       'round.type AS roundType',
+      'round.ignoreGroups AS roundIgnoreGroups',
       'group.id AS groupId',
       'group.name AS groupName',
       'championship.id AS championshipId',
@@ -179,6 +182,7 @@ const appendEntities = (rows) => {
     'roundName',
     'roundCode',
     'roundType',
+    'roundIgnoreGroups',
     'roundChampionshipId',
     'championshipId',
     'championshipName',
@@ -194,12 +198,13 @@ const appendEntities = (rows) => {
       {
         ...omit(JOIN_FIELDS, row),
         date: new Date(row.date),
-        group: row.groupId
-          ? {
-              id: row.groupId,
-              name: row.groupName
-            }
-          : null,
+        group:
+          row.groupId && !row.roundIgnoreGroups
+            ? {
+                id: row.groupId,
+                name: row.groupName
+              }
+            : null,
         homeTeam: {
           id: row.homeTeamId,
           name: row.homeTeamName,
@@ -214,6 +219,7 @@ const appendEntities = (rows) => {
           id: row.roundId,
           name: row.roundName,
           code: row.roundCode,
+          ignoreGroups: row.roundIgnoreGroups,
           championship: {
             id: row.championshipId,
             name: row.championshipName,
