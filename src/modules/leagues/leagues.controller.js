@@ -173,7 +173,7 @@ const updateLeague = async (req, res) => {
     pointsStrategy,
     private: isPrivate,
     users: rawUsers,
-    enablePrizes,
+    enablePrizes: rawEnablePrizes,
     ticketValue,
     prizes: rawPrizes,
     championships: rawChampionships,
@@ -189,6 +189,7 @@ const updateLeague = async (req, res) => {
 
   const users = safeJSONParse(rawUsers)
   const championships = safeJSONParse(rawChampionships)
+  const enablePrizes = safeJSONParse(rawEnablePrizes)
   const prizes = safeJSONParse(rawPrizes)
 
   const badge = req.file?.path ? req.file?.path : req.body.badge3
@@ -204,7 +205,7 @@ const updateLeague = async (req, res) => {
     badge,
     pointsStrategy,
     enablePrizes,
-    ticketValue,
+    ticketValue: enablePrizes ? ticketValue : null,
     private: isPrivate,
     status
   })
@@ -222,13 +223,15 @@ const updateLeague = async (req, res) => {
 
   await leaguesPrizesModel.delete({ leagueId })
 
-  const leaguesPrizes = appendLeaguesPrizes({
-    leagueId,
-    prizes
-  })
+  if (enablePrizes) {
+    const leaguesPrizes = appendLeaguesPrizes({
+      leagueId,
+      prizes
+    })
 
-  if (leaguesPrizes.length > 0) {
-    await leaguesPrizesModel.replace(leaguesPrizes)
+    if (leaguesPrizes.length > 0) {
+      await leaguesPrizesModel.replace(leaguesPrizes)
+    }
   }
 
   const existingUsers = users.filter((user) => user?.name)
@@ -368,9 +371,6 @@ const getLeagueUsers = async (req, res) => {
   }
 
   const leagueUsers = await usersModel.fetchByLeague({ leagueId: id, status })
-  // const totalTicketsAmount = league.enablePrizes
-  //   ? parseFloat(league.ticketValue) * leagueUsers.length
-  //   : 0
 
   const leaguesInvitations = status
     ? []
