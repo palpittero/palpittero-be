@@ -18,16 +18,18 @@ const appendChampionshipRoundsStrategy = {
       championshipId,
       name: `Rodada ${round + 1}`,
       code: round + 1,
-      type: CHAMPIONSHIPS_ROUND_TYPE.REGULAR_TIME
+      type: CHAMPIONSHIPS_ROUND_TYPE.REGULAR_TIME,
+      ignoreGroups: round.ignoreGroups
     }))
   },
   [CHAMPIONSHIPS_ROUNDS.DETAILED]: ({ championshipId, rounds }) =>
-    rounds.map(({ id, name, type }, index) => ({
+    rounds.map(({ id, name, type, ignoreGroups }, index) => ({
       id,
       championshipId,
       name,
       code: index + 1,
-      type
+      type,
+      ignoreGroups
     }))
 }
 
