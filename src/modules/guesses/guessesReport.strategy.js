@@ -279,7 +279,7 @@ const calculateChampionshipGuessPointsGrouped = (guess) => {
 
   return guess.teamId === championshipTeamPosition.teamId &&
     guess.position === championshipTeamPosition.position
-    ? 5 // ToDo
+    ? 10
     : 0
 }
 
