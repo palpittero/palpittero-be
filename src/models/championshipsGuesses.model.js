@@ -104,30 +104,11 @@ const fetchByUserLeagueChampionships = async ({
   championshipsIds
 }) =>
   await knex(TABLE_NAME)
-    // .select([
-    // `${TABLE_NAME}.*`
-    // knex.raw(MATCH_STATUS_QUERY.replace(' AS status', ' AS matchStatus'))
-    // ])
-    // .join('matches', 'matches.id', `${TABLE_NAME}.matchId`)
-    // .join(
-    //   'leaguesChampionships',
-    //   'leaguesChampionships.leagueId',
-    //   `${TABLE_NAME}.leagueId`
-    // )
-    // .join('rounds', function () {
-    //   this.on('rounds.id', '=', 'matches.roundId').andOn(
-    //     'rounds.championshipId',
-    //     '=',
-    //     `leaguesChampionships.championshipId`
-    //   )
-    // })
     .where({
       userId,
-      [`${TABLE_NAME}.leagueId`]: leagueId
+      leagueId
     })
-    .whereIn(`${TABLE_NAME}.championshipId`, championshipsIds)
-    .groupBy(`${TABLE_NAME}.id`)
-// .having('matchStatus', '=', MATCH_STATUSES.SCHEDULED)
+    .whereIn('championshipId', championshipsIds)
 
 const appendEntities = (rows) =>
   pipe(

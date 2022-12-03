@@ -87,8 +87,6 @@ const registerGuesses = async (req, res) => {
   const championshipGuessesToDelete =
     parseDeleteChampionshipsGuesses(championshipsGuesses)
 
-  console.log({ championshipGuessesToDelete })
-
   if (championshipGuessesToDelete.length > 0) {
     await Promise.all(
       championshipGuessesToDelete.map(
@@ -104,6 +102,8 @@ const registerGuesses = async (req, res) => {
 
   const parsedChampionshipsGuesses =
     parseRegisterChampionshipsGuesses(championshipsGuesses)
+
+  console.log({ parsedChampionshipsGuesses })
 
   if (parsedChampionshipsGuesses.length > 0) {
     await championshipsGuessesModel.replace(parsedChampionshipsGuesses)
@@ -242,6 +242,8 @@ const copyGuesses = async (req, res) => {
         leagueId: sourceLeagueId,
         championshipsIds: commonChampionshipsIds
       })
+
+    console.log({ userChampionshipsGuesses })
 
     const championshipsGuesses = parseCopyChampionshipsGuesses({
       championshipsGuesses: userChampionshipsGuesses,
