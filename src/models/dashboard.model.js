@@ -159,6 +159,7 @@ const fetchUnprocessedChampionshipsGuesses = async ({ leagueId } = {}) => {
       points: null,
       ...appendWhere({ leagueId })
     })
+    .whereRaw('championshipTeamPositionPosition IS NOT null')
 
   return appendChampionshipsGuessesEntities(rows)
 }
