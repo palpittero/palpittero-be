@@ -1,3 +1,4 @@
+import isNil from 'lodash/fp/isNil'
 import { CHAMPIONSHIPS_ROUND_TYPE } from '../championships/championships.constants'
 import { GUESS_POINTS_STRATEGY } from './guesses.constants'
 
@@ -244,7 +245,22 @@ const calculateGuessPointsGrouped = (guess) => {
 }
 
 const calculateGuessBonusPointsGrouped = (guess) => {
-  if (guess.match.round.type === CHAMPIONSHIPS_ROUND_TYPE.REGULAR_TIME) {
+  const isRegularTimeMatch =
+    guess.match.round.type === CHAMPIONSHIPS_ROUND_TYPE.REGULAR_TIME
+
+  const hasMatchFinishedOnRegularTime =
+    isNil(guess.match.penaltiesTimeHomeTeamGoals) &&
+    isNil(guess.match.penaltiesTimeAwayTeamGoals)
+
+  const hasNoPenaltiesTimeGuess =
+    isNil(guess.homeTeamPenaltiesTimeGoals) &&
+    isNil(guess.awayTeamPenaltiesTimeGoals)
+
+  if (
+    isRegularTimeMatch ||
+    hasMatchFinishedOnRegularTime ||
+    hasNoPenaltiesTimeGuess
+  ) {
     return 0
   }
 

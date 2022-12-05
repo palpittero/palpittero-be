@@ -173,7 +173,6 @@ const processGuesses = async (req, res) => {
   const championshipsGuessesUpdate =
     calculateChampionshipsGuessesPoints(championshipsGuesses)
 
-  // return res.json({ championshipsGuesses, championshipsGuessesUpdate })
   if (matchesGuessesUpdate.length > 0) {
     await guessesModel.replace(matchesGuessesUpdate)
   }
@@ -242,8 +241,6 @@ const copyGuesses = async (req, res) => {
         leagueId: sourceLeagueId,
         championshipsIds: commonChampionshipsIds
       })
-
-    console.log({ userChampionshipsGuesses })
 
     const championshipsGuesses = parseCopyChampionshipsGuesses({
       championshipsGuesses: userChampionshipsGuesses,
