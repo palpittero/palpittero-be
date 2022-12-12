@@ -128,16 +128,6 @@ const appendEntities = (rows) =>
           'championshipTeamPositionTeamId'
         ]
 
-        const position = {
-          teamId: row.championshipTeamPositionTeamId,
-          position: row.championshipTeamPositionPosition,
-          points: row.championshipTeamPositionPoints
-        }
-
-        const positions = row.championshipTeamPositionTeamId
-          ? [...(result[row.id]?.championship?.positions || []), position]
-          : result[row.id]?.championship?.positions || []
-
         return {
           ...result,
           [row.id]: {
@@ -155,8 +145,7 @@ const appendEntities = (rows) =>
             championship: {
               id: row.championshipId,
               name: row.championshipName,
-              year: row.championshipYear,
-              positions
+              year: row.championshipYear
             },
             team: {
               id: row.teamId,
