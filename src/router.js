@@ -9,8 +9,12 @@ import usersLeagues from './modules/usersLeagues/usersLeagues.router'
 import championships from './modules/championships/championships.router'
 import dashboard from './modules/dashboard/dashboard.router'
 import championshipsGuesses from './modules/championshipsGuesses/championshipsGuesses.router'
+import alattus from './alattus/alattus.router'
 
-import { validateAccessToken } from './middleware/jwt.middleware'
+import {
+  validateAccessToken,
+  validateAlattusToken
+} from './middleware/jwt.middleware'
 
 const router = Router()
 
@@ -21,6 +25,7 @@ router.get('/', (req, res) => {
   })
 })
 
+router.use('/alattus', validateAlattusToken, alattus)
 router.use('/auth', auth)
 router.use('/users', validateAccessToken, users)
 router.use('/teams', validateAccessToken, teams)
