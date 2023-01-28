@@ -31,4 +31,23 @@ const validateAccessToken = (req, res, next) => {
   }
 }
 
-export { validateRefreshToken, validateAccessToken }
+const validateAlattusToken = (req, res, next) => {
+  console.log(req.headers)
+  if (req.headers.authorization) {
+    try {
+      const { authorization } = req.headers
+
+      if (!authorization.includes(process.env.ALATTUS_ACCESS_TOKEN)) {
+        return res.sendStatus(401)
+      } else {
+        next()
+      }
+    } catch (err) {
+      return res.sendStatus(401)
+    }
+  } else {
+    return res.sendStatus(401)
+  }
+}
+
+export { validateRefreshToken, validateAccessToken, validateAlattusToken }
