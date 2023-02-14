@@ -289,7 +289,7 @@ export const guessPointsStrategy = {
 }
 
 const calculateChampionshipGuessPointsGrouped = (guess) => {
-  const championshipTeamPosition = guess.championship.positions.find(
+  const championshipTeamPosition = guess.championship?.positions?.find(
     ({ position }) => guess.position === position
   )
 
