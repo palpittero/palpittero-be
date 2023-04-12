@@ -154,7 +154,7 @@ const fetchByChampionship = async ({ championshipId }) => {
       'homeTeamChampionship.teamId'
     )
     .join('rounds AS round', 'round.id', `${TABLE_NAME}.roundId`)
-    .join('groups AS group', 'group.id', `homeTeamChampionship.groupId`)
+    .leftJoin('groups AS group', 'group.id', `homeTeamChampionship.groupId`)
     .join(
       'championships AS championship',
       'round.championshipId',
