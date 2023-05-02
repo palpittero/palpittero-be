@@ -30,6 +30,7 @@ const fetchAll = async ({
   userId,
   ownerId,
   ownersIds,
+  usersLeaguesStatus,
   status
 } = {}) => {
   const query = knex(TABLE_NAME)
@@ -55,10 +56,11 @@ const fetchAll = async ({
       appendWhere({
         isPrivate,
         status,
+        usersLeaguesStatus,
         userId
       })
     )
-    .where(`${TABLE_NAME}.status`, '<>', STATUS.DELETED)
+    .andWhere(`${TABLE_NAME}.status`, '<>', STATUS.DELETED)
     .groupBy(['usersLeaguesId', `leaguesPrizesId`])
 
   if (ownerId) {
@@ -196,11 +198,12 @@ const appendEntities = (rows) =>
     values
   )(rows)
 
-const appendWhere = ({ isPrivate, userId, status }) =>
+const appendWhere = ({ isPrivate, userId, status, usersLeaguesStatus }) =>
   omitBy(isNil, {
     [`${TABLE_NAME}.private`]: isPrivate,
-    'usersLeagues.status': status,
-    'usersLeagues.userId': userId
+    [`${TABLE_NAME}.status`]: status,
+    'usersLeagues.userId': userId,
+    'usersLeagues.status': usersLeaguesStatus
   })
 
 const leaguesModel = baseModel(TABLE_NAME, columns)
