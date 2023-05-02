@@ -19,6 +19,7 @@ import { USERS_LEAGUES_STATUSES } from '../usersLeagues/usersLeagues.constants'
 import { LEAGUES_INVITATIONS_STATUSES } from '../leaguesInvitations/leaguesInvitations.constants'
 import leaguesPrizesModel from '../../models/leaguesPrizes.model'
 import { appendLeaguesPrizes } from '../leaguesPrizes/leaguesPrizes.helpers'
+import { STATUS } from '../../shared/constants'
 
 const getLeagues = async (req, res) => {
   const { private: isPrivate, ownerId } = req.query
@@ -408,11 +409,13 @@ const getLeagueChampionships = async (req, res) => {
 }
 
 const getLoggedUserLeagues = async (req, res) => {
-  const { status } = req.query
+  const { status: usersLeaguesStatus } = req.query
   const userId = res.locals.jwt.user.id
+
   const leagues = await leaguesModel.fetchAll({
     userId,
-    status
+    status: STATUS.ACTIVE,
+    usersLeaguesStatus
   })
 
   res.json({
@@ -421,7 +424,10 @@ const getLoggedUserLeagues = async (req, res) => {
 }
 
 const getPublicLeagues = async (req, res) => {
-  const leagues = await leaguesModel.fetchAll({ isPrivate: 0 })
+  const leagues = await leaguesModel.fetchAll({
+    isPrivate: 0,
+    status: STATUS.ACTIVE
+  })
 
   res.json({
     data: leagues
