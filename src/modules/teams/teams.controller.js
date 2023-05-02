@@ -38,6 +38,11 @@ const createTeam = async (req, res) => {
   const badge = req.file?.path ? req.file?.path : req.body.badge
   const country = safeJSONParse(rawCountry)
 
+  const teams = await teamsModel.fetchAll({ name })
+  if (teams.length > 0) {
+    return res.status(409).json()
+  }
+
   const [id] = await teamsModel.insert({
     name,
     badge,

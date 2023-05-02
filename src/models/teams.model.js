@@ -9,7 +9,7 @@ const TABLE_NAME = 'teams'
 
 const columns = ['id', 'name', 'badge', 'status', 'createdAt', 'updatedAt']
 
-const fetchAll = async ({ countryId, type }) => {
+const fetchAll = async ({ countryId, type, name }) => {
   const query = knex(TABLE_NAME)
     .select([
       `${TABLE_NAME}.*`,
@@ -21,7 +21,8 @@ const fetchAll = async ({ countryId, type }) => {
     .where(
       appendWhere({
         countryId,
-        type
+        type,
+        name
       })
     )
     .where(`${TABLE_NAME}.status`, '<>', STATUS.DELETED)
@@ -90,10 +91,13 @@ const appendEntities = (rows) => {
   })
 }
 
-const appendWhere = ({ championshipId, status }) =>
+const appendWhere = ({ countryId, type, championshipId, status, name }) =>
   omitBy(isNil, {
     'teamsChampionships.championshipId': championshipId,
-    [`${TABLE_NAME}.status`]: status
+    [`${TABLE_NAME}.status`]: status,
+    [`${TABLE_NAME}.name`]: name,
+    [`${TABLE_NAME}.type`]: type,
+    [`${TABLE_NAME}.countryId`]: countryId
   })
 
 const teamsModel = baseModel(TABLE_NAME, columns)
