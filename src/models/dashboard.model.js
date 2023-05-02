@@ -8,6 +8,7 @@ import reduce from 'lodash/fp/reduce'
 import values from 'lodash/fp/values'
 import { MATCH_STATUSES } from '../modules/matches/matches.constants'
 import { MATCH_STATUS_QUERY } from './matches.model'
+import { STATUS } from '../shared/constants'
 // import { pipe } from 'lodash/fp'
 
 const MATCHES_GUESSES_TABLE_NAME = 'guesses'
@@ -46,6 +47,7 @@ const fetchUnprocessedMatchesGuesses = async ({ leagueId } = {}) => {
 
           'leagues.name AS leagueName',
           'leagues.badge AS leagueBadge',
+          'leagues.status AS leagueStatus',
 
           'homeTeam.name AS homeTeamName',
           'homeTeam.badge AS homeTeamBadge',
@@ -69,6 +71,7 @@ const fetchUnprocessedMatchesGuesses = async ({ leagueId } = {}) => {
 
           'championships.name AS championshipName',
           'championships.year AS championshipYear',
+          'championships.status AS championshipStatus',
 
           'groups.id AS groupId',
           'groups.name AS groupName'
@@ -90,14 +93,13 @@ const fetchUnprocessedMatchesGuesses = async ({ leagueId } = {}) => {
             'rounds.championshipId'
           )
         })
-
-        // .leftJoin('teamsChampionships', 'teamsChampionships.teamId', 'homeTeam.id')
         .leftJoin('groups', 'groups.id', 'teamsChampionships.groupId')
-
         .as('unprocessedGuesses')
     )
     .where({
       matchStatus: MATCH_STATUSES.FINISHED,
+      leagueStatus: STATUS.ACTIVE,
+      championshipStatus: STATUS.ACTIVE,
       points: null,
       ...appendWhere({ leagueId })
     })
@@ -118,9 +120,11 @@ const fetchUnprocessedChampionshipsGuesses = async ({ leagueId } = {}) => {
 
           'leagues.name AS leagueName',
           'leagues.badge AS leagueBadge',
+          'leagues.status AS leagueStatus',
 
           'championship.name AS championshipName',
           'championship.year AS championshipYear',
+          'championship.status AS championshipStatus',
 
           'championshipTeamPosition.position AS championshipTeamPositionPosition',
 
@@ -157,16 +161,22 @@ const fetchUnprocessedChampionshipsGuesses = async ({ leagueId } = {}) => {
     )
     .where({
       points: null,
-      ...appendWhere({ leagueId })
+      ...appendWhere({
+        leagueId,
+        leagueStatus: STATUS.ACTIVE,
+        championshipStatus: STATUS.ACTIVE
+      })
     })
     .whereRaw('championshipTeamPositionPosition IS NOT null')
 
   return appendChampionshipsGuessesEntities(rows)
 }
 
-const appendWhere = ({ leagueId }) =>
+const appendWhere = ({ leagueId, leagueStatus, championshipStatus }) =>
   omitBy(isNil, {
-    leagueId
+    leagueId,
+    leagueStatus,
+    championshipStatus
   })
 
 const appendEntities = (rows) => {

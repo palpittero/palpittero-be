@@ -159,6 +159,7 @@ const deleteGuess = async (req, res) => {
 
 const processGuesses = async (req, res) => {
   const { leagueId, championshipId } = req.body
+
   const matchesGuesses = await guessesModel.fetchAll({
     leagueId,
     championshipId

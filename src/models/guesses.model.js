@@ -6,6 +6,7 @@ import pickBy from 'lodash/fp/pickBy'
 import identity from 'lodash/fp/identity'
 import { MATCH_STATUS_QUERY } from './matches.model'
 import { MATCH_STATUSES } from '../modules/matches/matches.constants'
+import { STATUS } from '../shared/constants'
 // import { DB_DEFAULT_DATE_FN } from '../config/database'
 
 const TABLE_NAME = 'guesses'
@@ -107,6 +108,7 @@ const fetchAll = async ({
       'user.email AS userEmail',
       'league.name AS leagueName',
       'league.badge AS leagueBadge',
+      'league.status AS leagueStatus',
       'league.pointsStrategy AS leaguePointsStrategy',
       'homeTeam.name AS homeTeamName',
       'homeTeam.badge AS homeTeamBadge',
@@ -114,6 +116,7 @@ const fetchAll = async ({
       'awayTeam.badge AS awayTeamBadge',
       'round.type AS roundType',
       'championship.name AS championshipName',
+      'championship.status AS championshipStatus',
       knex.raw(MATCH_STATUS_QUERY)
     ])
     .join('users AS user', 'user.id', `${TABLE_NAME}.userId`)
@@ -139,7 +142,9 @@ const fetchAll = async ({
         leagueId,
         matchId,
         roundId,
-        championshipId
+        championshipId,
+        championshipStatus: STATUS.ACTIVE,
+        leagueStatus: STATUS.ACTIVE
       })
     )
     .groupBy(`${TABLE_NAME}.id`)
@@ -220,13 +225,23 @@ const appendEntities = (rows) =>
     ]
   }, [])
 
-const appendWhere = ({ userId, leagueId, championshipId, matchId, roundId }) =>
+const appendWhere = ({
+  userId,
+  leagueId,
+  championshipId,
+  matchId,
+  roundId,
+  leagueStatus,
+  championshipStatus
+}) =>
   pickBy(identity, {
     userId,
     'guesses.leagueId': leagueId,
     matchId,
     'matches.roundId': roundId,
-    'round.championshipId': championshipId
+    'round.championshipId': championshipId,
+    'league.status': leagueStatus,
+    'championship.status': championshipStatus
   })
 
 const fetchByUserLeagueChampionships = async ({
