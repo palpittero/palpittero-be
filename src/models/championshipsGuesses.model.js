@@ -6,6 +6,7 @@ import reduce from 'lodash/fp/reduce'
 import values from 'lodash/fp/values'
 import pickBy from 'lodash/fp/pickBy'
 import identity from 'lodash/fp/identity'
+import { STATUS } from '../shared/constants'
 // import { pipe } from 'lodash/fp'
 
 const TABLE_NAME = 'championshipsGuesses'
@@ -63,10 +64,12 @@ const fetchAll = async ({ userId, leagueId, championshipId } = {}) => {
       `${TABLE_NAME}.*`,
       'championship.name AS championshipName',
       'championship.year AS championshipYear',
+      'championship.status AS championshipStatus',
       'user.name AS userName',
       'user.email AS userEmail',
       'league.name AS leagueName',
       'league.badge AS leagueBadge',
+      'league.status AS leagueStatus',
       'team.name AS teamName',
       'team.badge AS teamBadge',
       'championshipTeamPosition.position AS championshipTeamPositionPosition',
@@ -90,7 +93,9 @@ const fetchAll = async ({ userId, leagueId, championshipId } = {}) => {
       appendWhere({
         userId,
         leagueId,
-        championshipId
+        championshipId,
+        leagueStatus: STATUS.ACTIVE,
+        championshipStatus: STATUS.ACTIVE
       })
     )
   // .groupBy(`${TABLE_NAME}.id`)
@@ -159,11 +164,19 @@ const appendEntities = (rows) =>
     values
   )(rows)
 
-const appendWhere = ({ userId, leagueId, championshipId }) =>
+const appendWhere = ({
+  userId,
+  leagueId,
+  championshipId,
+  leagueStatus,
+  championshipStatus
+}) =>
   pickBy(identity, {
     userId,
     leagueId,
-    [`${TABLE_NAME}.championshipId`]: championshipId
+    [`${TABLE_NAME}.championshipId`]: championshipId,
+    'league.status': leagueStatus,
+    'championship.status': championshipStatus
   })
 
 export default {

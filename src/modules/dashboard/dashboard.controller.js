@@ -18,6 +18,7 @@ const getUnprocessedGuesses = async (req, res) => {
   const matchesGuesses = await dashboardModel.fetchUnprocessedMatchesGuesses({
     leagueId
   })
+
   const championshipsGuesses =
     await dashboardModel.fetchUnprocessedChampionshipsGuesses({
       leagueId
