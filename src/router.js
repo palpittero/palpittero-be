@@ -10,6 +10,7 @@ import championships from './modules/championships/championships.router'
 import dashboard from './modules/dashboard/dashboard.router'
 import championshipsGuesses from './modules/championshipsGuesses/championshipsGuesses.router'
 import alattus from './alattus/alattus.router'
+import weddingQuiz from './wedding-quiz/wedding-quiz.router.js'
 
 import {
   validateAccessToken,
@@ -25,7 +26,6 @@ router.get('/', (req, res) => {
   })
 })
 
-router.use('/alattus', validateAlattusToken, alattus)
 router.use('/auth', auth)
 router.use('/users', validateAccessToken, users)
 router.use('/teams', validateAccessToken, teams)
@@ -36,5 +36,8 @@ router.use('/users-leagues', validateAccessToken, usersLeagues)
 router.use('/championships', validateAccessToken, championships)
 router.use('/dashboard', validateAccessToken, dashboard)
 router.use('/championships-guesses', validateAccessToken, championshipsGuesses)
+
+router.use('/alattus', validateAlattusToken, alattus)
+router.use('/wedding-quiz', weddingQuiz)
 
 export default router
