@@ -32,7 +32,6 @@ const validateAccessToken = (req, res, next) => {
 }
 
 const validateAlattusToken = (req, res, next) => {
-  console.log(req.headers)
   if (req.headers.authorization) {
     try {
       const { authorization } = req.headers
