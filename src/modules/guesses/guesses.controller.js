@@ -103,8 +103,6 @@ const registerGuesses = async (req, res) => {
   const parsedChampionshipsGuesses =
     parseRegisterChampionshipsGuesses(championshipsGuesses)
 
-  console.log({ parsedChampionshipsGuesses })
-
   if (parsedChampionshipsGuesses.length > 0) {
     await championshipsGuessesModel.replace(parsedChampionshipsGuesses)
   }
@@ -180,6 +178,11 @@ const processGuesses = async (req, res) => {
 
   if (championshipsGuessesUpdate.length > 0) {
     await championshipsGuessesModel.replace(championshipsGuessesUpdate)
+  }
+
+  if (process.env.EMAIL_DISABLE === 'true') {
+    console.log('E-mails disabled')
+    return res.sendStatus(200)
   }
 
   const usersEmails = uniq(

@@ -73,15 +73,14 @@ const fetchAll = async ({ userId, leagueId, championshipId } = {}) => {
       'team.name AS teamName',
       'team.badge AS teamBadge',
       'championshipTeamPosition.position AS championshipTeamPositionPosition',
-      'championshipTeamPosition.teamId AS championshipTeamPositionTeamId',
-      'championshipTeamPosition.points AS championshipTeamPositionPoints'
+      'championshipTeamPosition.teamId AS championshipTeamPositionTeamId'
     ])
     .join(
       'championships AS championship',
       'championship.id',
       `${TABLE_NAME}.championshipId`
     )
-    .leftJoin(
+    .join(
       'championshipsTeamsPositions AS championshipTeamPosition',
       'championshipTeamPosition.championshipId',
       `${TABLE_NAME}.championshipId`
@@ -98,7 +97,6 @@ const fetchAll = async ({ userId, leagueId, championshipId } = {}) => {
         championshipStatus: STATUS.ACTIVE
       })
     )
-  // .groupBy(`${TABLE_NAME}.id`)
 
   return appendEntities(rows)
 }
@@ -133,6 +131,15 @@ const appendEntities = (rows) =>
           'championshipTeamPositionTeamId'
         ]
 
+        const position = {
+          teamId: row.championshipTeamPositionTeamId,
+          position: row.championshipTeamPositionPosition
+        }
+
+        const positions = row.championshipTeamPositionPosition
+          ? [...(result[row.id]?.championship?.positions || []), position]
+          : result[row.id]?.championship?.positions || []
+
         return {
           ...result,
           [row.id]: {
@@ -150,7 +157,8 @@ const appendEntities = (rows) =>
             championship: {
               id: row.championshipId,
               name: row.championshipName,
-              year: row.championshipYear
+              year: row.championshipYear,
+              positions
             },
             team: {
               id: row.teamId,
