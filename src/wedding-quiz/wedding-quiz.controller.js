@@ -1,21 +1,44 @@
 import jwt from 'jsonwebtoken'
+import omit from 'lodash/fp/omit'
 import magic from '../shared/magic.service'
-import { createGuest, guestExists } from './wedding-quiz.service'
+import {
+  findUser,
+  createUser,
+  // linkGuestToUser,
+  setUserIssuer,
+  findGuests,
+  linkGuestsToUser
+} from './wedding-quiz.service'
 
 const login = async (req, res) => {
   try {
     const {
       didToken,
-      guest: { email, name }
+      credentials: { type, value }
     } = req.body
-    // console.log({ didToken, guest })
+    // console.log(req.body)
     await magic.token.validate(didToken)
     const magicUserMetadata = await magic.users.getMetadataByToken(didToken)
-    // console.log({ magicUserMetadata })
+
+    const user =
+      (await findUser({ issuer: didToken, credential: value })) ||
+      (await createUser({ [type]: value, issuer: didToken }))
+
+    if (!user.issuer) {
+      await setUserIssuer({ issuer: didToken, id: user.id })
+    }
+
+    const guests = await findGuests({ credential: value, userId: user.id })
+    const guestsIds = guests.map(({ id }) => id).join(',')
+
+    await linkGuestsToUser({ guestsIds, userId: user.id })
 
     const token = jwt.sign(
       {
-        ...magicUserMetadata,
+        user: {
+          ...user,
+          magic: magicUserMetadata
+        },
         'https://hasura.io/jwt/claims': {
           'x-hasura-allowed-roles': ['user'],
           'x-hasura-default-role': 'user',
@@ -28,14 +51,10 @@ const login = async (req, res) => {
       process.env.WEDDING_QUIZ_JWT_SECRET
     )
 
-    if (!(await guestExists(didToken, token))) {
-      await createGuest({ name, email })
-    }
-    // if (!(await guestExists("magicUserMetadata.issuer", token))) {
-    //   await createGuest(magicUserMetadata, token)
-    // }
-
-    return res.json(token)
+    return res.json({
+      token,
+      user
+    })
   } catch (error) {
     console.log(error)
     return res.status(500).send()
@@ -50,7 +69,6 @@ const logout = async (req, res) => {
 
     const { token } = req.cookies
     const magicUser = jwt.verify(token, process.env.JWT_SECRET)
-    console.log({ magicUser })
     res.clearCookie('token')
 
     // Add the try/catch because a user's session may have already expired with Magic (expired 7 days after login)
@@ -66,4 +84,27 @@ const logout = async (req, res) => {
   }
 }
 
-export { login, logout }
+const me = async (req, res) => {
+  const { authorization } = req.headers
+
+  try {
+    const {
+      user: { issuer, email, phone }
+    } = jwt.verify(
+      authorization.replace('Bearer ', ''),
+      process.env.WEDDING_QUIZ_JWT_SECRET
+    )
+
+    const user = await findUser({ issuer, credential: email || phone })
+
+    if (!user) {
+      return res.sendStatus(401)
+    }
+
+    return res.json(omit('issuer', user))
+  } catch (error) {
+    return res.sendStatus(401)
+  }
+}
+
+export { login, logout, me }
