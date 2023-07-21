@@ -1,5 +1,5 @@
 import lodash from 'lodash/fp'
-const { pipe, filter, reduce, pick, uniqBy } = lodash
+const { pipe, filter, reduce, pick, uniqBy, isNil } = lodash
 // const { pipe, filter, reduce, pick } = lodash
 import { TABLE_FIELDS as MATCHES_GUESSES_TABLE_FIELDS } from '../../models/guesses.model'
 import { TABLE_FIELDS as CHAMPIONSHIPS_GUESSES_TABLE_FIELDS } from '../../models/championshipsGuesses.model'
@@ -12,7 +12,12 @@ import {
 
 export const calculateGuessesPoints = (guesses) =>
   pipe(
-    filter(({ match }) => match.status === MATCH_STATUSES.FINISHED),
+    filter(
+      ({ match }) =>
+        match.status === MATCH_STATUSES.FINISHED &&
+        !isNil(match.regularTimeHomeTeamGoals) &&
+        !isNil(match.regularTimeAwayTeamGoals)
+    ),
     reduce((result, guess) => {
       const points = guessPointsStrategy[guess.league.pointsStrategy](guess)
 
