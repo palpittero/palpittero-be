@@ -80,7 +80,7 @@ const fetchAll = async ({ userId, leagueId, championshipId } = {}) => {
       'championship.id',
       `${TABLE_NAME}.championshipId`
     )
-    .join(
+    .leftJoin(
       'championshipsTeamsPositions AS championshipTeamPosition',
       'championshipTeamPosition.championshipId',
       `${TABLE_NAME}.championshipId`
