@@ -3,17 +3,16 @@ import axios from 'axios'
 const findUser = async ({ issuer, credential }) => {
   const query = {
     query: `query {
-      users(where: { _or: [{ issuer: {_eq: "${issuer}" }}, {email: { _eq: "${credential}" }}, {phone: { _eq: "${credential}" }} ]}) {
+      users(where: { _or: [{ issuer: {_eq: "${issuer}" }}, {email: { _eq: "${credential}" }}, {phone: { _eq: "${credential}" }}, {name: { _ilike: "%${credential}%" }} ]}) {
         id
         name
         email
         phone
+        role
         issuer
       }
     }`
   }
-
-  console.log('find user', query)
 
   const {
     data: { users }
@@ -25,7 +24,7 @@ const findUser = async ({ issuer, credential }) => {
 const findGuests = async ({ credential, userId }) => {
   const query = {
     query: `query {
-      guests(where: { _or: [{ email: { _eq: "${credential}" }}, {phone: { _eq: "${credential}" }}, {user_id: { _eq: ${userId} }}]  }) {
+      guests(where: { _or: [{ email: { _eq: "${credential}" }}, {phone: { _eq: "${credential}" }}, { name: { _ilike: "%${credential}%" }}, {user_id: { _eq: ${userId} }}]  }) {
         id
         email
         phone
@@ -49,14 +48,15 @@ const findGuests = async ({ credential, userId }) => {
   return guests
 }
 
-async function createUser({ email = '', phone = '', issuer }) {
+async function createUser({ name = '', email = '', phone = '', issuer }) {
   const query = {
     query: `mutation {
-      insert_users_one( object: { name: "", email: "${email}", phone: "${phone}", issuer: "${issuer}" }) {
+      insert_users_one( object: { name: "${name}", email: "${email}", phone: "${phone}", issuer: "${issuer}" }) {
         id
         name
         email
         phone
+        role
         issuer
       }
     }`

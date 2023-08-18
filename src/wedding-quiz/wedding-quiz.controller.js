@@ -10,7 +10,7 @@ import {
   linkGuestsToUser
 } from './wedding-quiz.service'
 
-const login = async (req, res) => {
+const magicLogin = async (req, res) => {
   try {
     const {
       didToken,
@@ -61,7 +61,54 @@ const login = async (req, res) => {
   }
 }
 
-const logout = async (req, res) => {
+const login = async (req, res) => {
+  try {
+    const {
+      credentials: { type, value }
+    } = req.body
+    // console.log(req.body)
+    // await magic.token.validate(didToken)
+    // const magicUserMetadata = await magic.users.getMetadataByToken(didToken)
+
+    const user =
+      (await findUser({ credential: value })) ||
+      (await createUser({ [type]: value }))
+
+    // if (!user.issuer) {
+    //   await setUserIssuer({ issuer: didToken, id: user.id })
+    // }
+
+    const guests = await findGuests({ credential: value, userId: user.id })
+    const guestsIds = guests.map(({ id }) => id).join(',')
+
+    await linkGuestsToUser({ guestsIds, userId: user.id })
+
+    const token = jwt.sign(
+      {
+        user,
+        'https://hasura.io/jwt/claims': {
+          'x-hasura-allowed-roles': ['user'],
+          'x-hasura-default-role': 'user',
+          'x-hasura-user-id': `${user.id}`
+          // 'x-hasura-user-id':
+          //   'did:ethr:0xFC6C7E08782044471ab9A95549A2C7804fddc324'
+        },
+        exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7 // 7 days
+      },
+      process.env.WEDDING_QUIZ_JWT_SECRET
+    )
+
+    return res.json({
+      token,
+      user
+    })
+  } catch (error) {
+    console.log(error)
+    return res.status(500).send()
+  }
+}
+
+const magicLogout = async (req, res) => {
   try {
     if (!req.cookies.token) {
       return res.status(401).json({ message: 'User is not logged in' })
@@ -89,13 +136,13 @@ const me = async (req, res) => {
 
   try {
     const {
-      user: { issuer, email, phone }
+      user: { issuer, name, email, phone }
     } = jwt.verify(
       authorization.replace('Bearer ', ''),
       process.env.WEDDING_QUIZ_JWT_SECRET
     )
 
-    const user = await findUser({ issuer, credential: email || phone })
+    const user = await findUser({ issuer, credential: name || email || phone })
 
     if (!user) {
       return res.sendStatus(401)
@@ -107,4 +154,4 @@ const me = async (req, res) => {
   }
 }
 
-export { login, logout, me }
+export { login, magicLogin, magicLogout, me }
