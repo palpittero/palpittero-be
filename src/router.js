@@ -11,7 +11,6 @@ import dashboard from './modules/dashboard/dashboard.router'
 import championshipsGuesses from './modules/championshipsGuesses/championshipsGuesses.router'
 import alattus from './alattus/alattus.router'
 import weddingQuiz from './wedding-quiz/wedding-quiz.router.js'
-import htmx from './htmx/htmx.router.js'
 
 import {
   validateAccessToken,
@@ -40,6 +39,5 @@ router.use('/championships-guesses', validateAccessToken, championshipsGuesses)
 
 router.use('/alattus', validateAlattusToken, alattus)
 router.use('/wedding-quiz', weddingQuiz)
-router.use('/htmx', htmx)
 
 export default router
