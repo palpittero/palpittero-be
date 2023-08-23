@@ -1,9 +1,9 @@
 import axios from 'axios'
 
-const findUser = async ({ issuer, credential }) => {
+const findUser = async ({ credential }) => {
   const query = {
     query: `query {
-      users(where: { _or: [{ issuer: {_eq: "${issuer}" }}, {email: { _eq: "${credential}" }}, {phone: { _eq: "${credential}" }}, {name: { _ilike: "%${credential}%" }} ]}) {
+      users(where: { _or: [{ email: { _eq: "${credential}" }}, {phone: { _eq: "${credential}" }}, {name: { _ilike: "%${credential}%" }} ]}) {
         id
         name
         email
@@ -48,10 +48,10 @@ const findGuests = async ({ credential, userId }) => {
   return guests
 }
 
-async function createUser({ name = '', email = '', phone = '', issuer }) {
+async function createUser({ name = '', email = '', phone = '' }) {
   const query = {
     query: `mutation {
-      insert_users_one( object: { name: "${name}", email: "${email}", phone: "${phone}", issuer: "${issuer}" }) {
+      insert_users_one( object: { name: "${name}", email: "${email}", phone: "${phone}" }) {
         id
         name
         email
