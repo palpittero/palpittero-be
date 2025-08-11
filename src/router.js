@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import auth from './modules/auth/auth.router.js'
+import auth from './modules/auth/auth.router'
 import users from './modules/users/users.router'
 import leagues from './modules/leagues/leagues.router'
 import matches from './modules/matches/matches.router'
@@ -10,7 +10,7 @@ import championships from './modules/championships/championships.router'
 import dashboard from './modules/dashboard/dashboard.router'
 import championshipsGuesses from './modules/championshipsGuesses/championshipsGuesses.router'
 import alattus from './alattus/alattus.router'
-import weddingQuiz from './wedding-quiz/wedding-quiz.router.js'
+import weddingQuiz from './wedding-quiz/wedding-quiz.router'
 
 import {
   validateAccessToken,

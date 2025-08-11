@@ -5,7 +5,7 @@ import {
   // magicLogin,
   // magicLogout,
   me
-} from './wedding-quiz.controller.js'
+} from './wedding-quiz.controller'
 
 const router = Router()
 
