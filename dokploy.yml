@@ -1,0 +1,6 @@
+build:
+  command: yarn build
+run:
+  command: yarn start
+  ports:
+    - 3000

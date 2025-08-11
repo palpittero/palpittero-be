@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon --import=extensionless/register --experimental-modules --es-module-specifier-resolution=node ./src/index.js",
-    "staging": "cross-env NODE_ENV=staging node --experimental-modules --es-module-specifier-resolution=node ./src/index.js",
-    "production": "cross-env NODE_ENV=production nodemon --experimental-modules --es-module-specifier-resolution=node ./src/index.js",
+    "staging": "cross-env NODE_ENV=staging node --import=extensionless/register --experimental-modules --es-module-specifier-resolution=node ./src/index.js",
+    "production": "cross-env NODE_ENV=production nodemon --import=extensionless/register --experimental-modules --es-module-specifier-resolution=node ./src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "db:migrate": "cross-env NODE_ENV=development ./node_modules/knex/bin/cli.js migrate:latest --knexfile knexfile.js",
     "db:seed": "cross-env NODE_ENV=development ./node_modules/knex/bin/cli.js seed:run --knexfile knexfile.js",
