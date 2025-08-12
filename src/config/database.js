@@ -3,16 +3,15 @@ import knexfile from '../../knexfile'
 
 const { NODE_ENV } = process.env
 
-console.log({ NODE_ENV })
 const database = knex(knexfile[NODE_ENV])
 
 if (NODE_ENV === 'memory') {
   await database.raw('PRAGMA foreign_keys = ON')
 } else {
-  await database.raw(`SET GLOBAL time_zone = '-3:00';`)
+  await database.raw(`SET SESSION time_zone = '-3:00';`)
   await database.raw(`SET SESSION time_zone = '-3:00';`)
   await database.raw(
-    `SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));`
+    `SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));`
   )
   await database.raw(
     `SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));`
