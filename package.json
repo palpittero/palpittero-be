@@ -5,6 +5,7 @@
   "main": "./src/index.js",
   "type": "module",
   "scripts": {
+    "start": "NODE_ENV=production node --import=extensionless/register --experimental-modules --es-module-specifier-resolution=node ./src/index.js",
     "dev": "cross-env NODE_ENV=development nodemon --import=extensionless/register --experimental-modules --es-module-specifier-resolution=node ./src/index.js",
     "staging": "cross-env NODE_ENV=staging node --import=extensionless/register --experimental-modules --es-module-specifier-resolution=node ./src/index.js",
     "production": "cross-env NODE_ENV=production nodemon --import=extensionless/register --experimental-modules --es-module-specifier-resolution=node ./src/index.js",
