@@ -13,9 +13,6 @@ if (NODE_ENV === 'memory') {
   await database.raw(
     `SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));`
   )
-  await database.raw(
-    `SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));`
-  )
 }
 
 export default database
