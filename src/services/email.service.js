@@ -9,7 +9,6 @@ const sendEmail = ({ to, from = process.env.EMAIL_FROM, subject, html }) => {
       user: process.env.SMTP_USER_NAME,
       pass: process.env.SMTP_USER_PASSWORD
     }
-    // tls: { rejectUnauthorized: false }
   })
 
   const mailOptions = {

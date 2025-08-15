@@ -16,6 +16,7 @@ import {
   validateAccessToken,
   validateAlattusToken
 } from './middleware/jwt.middleware'
+import { sendEmail } from './services/email.service'
 
 const router = Router()
 
