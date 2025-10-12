@@ -30,6 +30,7 @@ const createTeam = async (req, res) => {
     name,
     type,
     country: rawCountry,
+    countryId: rawCountryId,
     region,
     nationalDivision,
     status
@@ -43,11 +44,13 @@ const createTeam = async (req, res) => {
     return res.status(409).json()
   }
 
+  const isNationalTeam = type === 'nationalTeam'
+
   const [id] = await teamsModel.insert({
     name,
     badge,
     type,
-    countryId: country?.id ?? null,
+    countryId: isNationalTeam ? null : country?.id ?? rawCountryId ?? null,
     region,
     nationalDivision,
     status
@@ -62,6 +65,7 @@ const updateTeam = async (req, res) => {
     name,
     type,
     country: rawCountry,
+    countryId: rawCountryId,
     region: rawRegion,
     nationalDivision: rawNationalDivision,
     status
@@ -77,13 +81,14 @@ const updateTeam = async (req, res) => {
   const country = safeJSONParse(rawCountry)
   const region = safeJSONParse(rawRegion)
   const nationalDivision = safeJSONParse(rawNationalDivision)
+  const isNationalTeam = type === 'nationalTeam'
 
   await teamsModel.update({
     id,
     name,
     badge,
     type,
-    countryId: country?.id ?? null,
+    countryId: isNationalTeam ? null : country?.id ?? rawCountryId ?? null,
     region,
     nationalDivision,
     status

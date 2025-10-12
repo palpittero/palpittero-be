@@ -90,24 +90,26 @@ export const parseRegisterMatchesGuesses = ({
   )
 
 export const parseCopyMatchesGuesses = ({ matchesGuesses, targetLeagueId }) =>
-  matchesGuesses.map(
-    ({
-      homeTeamRegularTimeGoals,
-      awayTeamRegularTimeGoals,
-      homeTeamPenaltiesTimeGoals,
-      awayTeamPenaltiesTimeGoals,
-      userId,
-      matchId
-    }) => ({
-      homeTeamRegularTimeGoals,
-      awayTeamRegularTimeGoals,
-      homeTeamPenaltiesTimeGoals,
-      awayTeamPenaltiesTimeGoals,
-      leagueId: targetLeagueId,
-      userId,
-      matchId
-    })
-  )
+  matchesGuesses
+    .filter(({ points }) => !points)
+    .map(
+      ({
+        homeTeamRegularTimeGoals,
+        awayTeamRegularTimeGoals,
+        homeTeamPenaltiesTimeGoals,
+        awayTeamPenaltiesTimeGoals,
+        userId,
+        matchId
+      }) => ({
+        homeTeamRegularTimeGoals,
+        awayTeamRegularTimeGoals,
+        homeTeamPenaltiesTimeGoals,
+        awayTeamPenaltiesTimeGoals,
+        leagueId: targetLeagueId,
+        userId,
+        matchId
+      })
+    )
 
 export const parseCopyChampionshipsGuesses = ({
   championshipsGuesses,

@@ -48,6 +48,7 @@ const fetchUnprocessedMatchesGuesses = async ({ leagueId } = {}) => {
           'leagues.name AS leagueName',
           'leagues.badge AS leagueBadge',
           'leagues.status AS leagueStatus',
+          'leagues.private AS leaguePrivate',
 
           'homeTeam.name AS homeTeamName',
           'homeTeam.badge AS homeTeamBadge',
@@ -121,6 +122,7 @@ const fetchUnprocessedChampionshipsGuesses = async ({ leagueId } = {}) => {
           'leagues.name AS leagueName',
           'leagues.badge AS leagueBadge',
           'leagues.status AS leagueStatus',
+          'leagues.private AS leaguePrivate',
 
           'championship.name AS championshipName',
           'championship.year AS championshipYear',
@@ -218,13 +220,15 @@ const appendEntities = (rows) => {
   return rows.map((row) => {
     const user = {
       id: row.userId,
-      name: row.userName
+      name: row.userName,
+      avatar: row.userAvatar
     }
 
     const league = {
       id: row.leagueId,
       name: row.leagueName,
-      badge: row.leagueBadge
+      badge: row.leagueBadge,
+      private: row.leaguePrivate
     }
 
     const homeTeam = {
@@ -283,6 +287,7 @@ const appendChampionshipsGuessesEntities = (rows) => {
     'userAvatar',
     'leagueName',
     'leagueBadge',
+    'leaguePrivate',
     'championshipId',
     'championshipName',
     'championshipYear',
@@ -298,13 +303,15 @@ const appendChampionshipsGuessesEntities = (rows) => {
     reduce((result, row) => {
       const user = {
         id: row.userId,
-        name: row.userName
+        name: row.userName,
+        avatar: row.userAvatar
       }
 
       const league = {
         id: row.leagueId,
         name: row.leagueName,
-        badge: row.leagueBadge
+        badge: row.leagueBadge,
+        private: row.leaguePrivate
       }
 
       const position = {

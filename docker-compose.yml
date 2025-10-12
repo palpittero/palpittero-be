@@ -9,11 +9,12 @@ services:
       - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: "${DB_PASSWORD}"
-    command: --default-time-zone=-03:00 --sql-mode="STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"
+    command: --default-time-zone=-03:00 --sql-mode="STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"
     networks:
       - docker-service
     volumes:
       - .docker:/docker-entrypoint-initdb.d
+      - ./mysql_data:/var/lib/mysql
 
 networks:
   docker-service:

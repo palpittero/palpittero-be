@@ -10,9 +10,9 @@ exports.seed = async function (knex) {
     },
     {
       id: 2,
-      name: 'Dono',
+      name: 'Admin',
       password: '$2b$10$wgZd2.ywV6RR0lzECserwuohg5NVhyDJeGjoztjjwUC3lvGlv/T3K',
-      email: 'dono@palpittero.com',
+      email: 'admin@palpittero.com',
       phone: '+5522999999999',
       role: 'admin'
     },

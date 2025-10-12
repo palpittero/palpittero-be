@@ -1,13 +1,12 @@
 import omit from 'lodash/fp/omit'
 import usersModel from '../../models/users.model'
 import usersLeaguesModel from '../../models/usersLeagues.model'
-// import guessesModel from '../../models/guesses.model'
 import { signUp } from '../auth/auth.controller'
 import {
   sendActivationEmail,
   sendEmailChangeEmail
 } from '../email/email.service'
-// import leaguesModel from '../../models/leagues.model'
+import { parseFile } from '../../utils/misc'
 
 const getUsers = async (req, res) => {
   const users = await usersModel.fetchAll()
@@ -48,7 +47,7 @@ const updateUser = async (req, res) => {
     return res.sendStatus(409)
   }
 
-  const avatar = req.file?.path ? req.file?.path : req.body.avatar
+  const avatar = parseFile({ req, key: 'avatar' })
 
   await usersModel.update({
     id,

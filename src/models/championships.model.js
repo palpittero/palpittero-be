@@ -68,7 +68,22 @@ const fetchById = async (id) => {
       `${TABLE_NAME}.*`,
       'teams.id AS teamId',
       'teams.name AS teamName',
-      'teams.badge AS teamBadge'
+      'teams.badge AS teamBadge',
+      'teamsChampionships.championshipId',
+      'teamsChampionships.groupId AS teamGroupId',
+      'rounds.id AS roundId',
+      'rounds.code AS roundCode',
+      'rounds.name AS roundName',
+      'rounds.type AS roundType',
+      'rounds.ignoreGroups AS roundIgnoreGroups',
+      'groups.id AS groupId',
+      'groups.code AS groupCode',
+      'groups.name AS groupName',
+      'championshipTeamPosition.position',
+      'championshipTeamPosition.points',
+      'teamPosition.id AS teamPositionId',
+      'teamPosition.name AS teamPositionName',
+      'teamPosition.badge AS teamPositionBadge'
     ])
     .leftJoin(
       'teamsChampionships',
@@ -76,6 +91,18 @@ const fetchById = async (id) => {
       `${TABLE_NAME}.id`
     )
     .leftJoin('teams', 'teams.id', `teamsChampionships.teamId`)
+    .leftJoin('rounds', 'rounds.championshipId', `${TABLE_NAME}.id`)
+    .leftJoin('groups', 'groups.championshipId', `${TABLE_NAME}.id`)
+    .leftJoin(
+      'championshipsTeamsPositions AS championshipTeamPosition',
+      'championshipTeamPosition.championshipId',
+      `${TABLE_NAME}.id`
+    )
+    .leftJoin(
+      'teams AS teamPosition',
+      'teamPosition.id',
+      `championshipTeamPosition.teamId`
+    )
     .where(
       appendWhere({
         [`${TABLE_NAME}.id`]: id,
@@ -88,11 +115,28 @@ const fetchById = async (id) => {
 
 const fetchByLeague = async ({ leagueId }) => {
   const rows = await knex(TABLE_NAME)
-    .select([`${TABLE_NAME}.*`, 'leaguesChampionships.enableGuesses'])
+    .select([
+      `${TABLE_NAME}.*`,
+      'leaguesChampionships.enableGuesses',
+      'championshipTeamPosition.position',
+      'teamPosition.id AS teamPositionId',
+      'teamPosition.name AS teamPositionName',
+      'teamPosition.badge AS teamPositionBadge'
+    ])
     .join(
       'leaguesChampionships',
       'leaguesChampionships.championshipId',
       `${TABLE_NAME}.id`
+    )
+    .leftJoin(
+      'championshipsTeamsPositions AS championshipTeamPosition',
+      'championshipTeamPosition.championshipId',
+      `${TABLE_NAME}.id`
+    )
+    .leftJoin(
+      'teams AS teamPosition',
+      'teamPosition.id',
+      `championshipTeamPosition.teamId`
     )
     .where(
       appendWhere({
@@ -100,7 +144,7 @@ const fetchByLeague = async ({ leagueId }) => {
         [`${TABLE_NAME}.status`]: STATUS.ACTIVE
       })
     )
-    .groupBy(`${TABLE_NAME}.id`)
+    .groupBy(`${TABLE_NAME}.id`, 'teamPosition.id')
 
   return appendEntities(rows)
 }

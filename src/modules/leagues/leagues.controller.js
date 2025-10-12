@@ -14,7 +14,7 @@ import {
   sendLeagueInvitationEmail
 } from '../email/email.service'
 import { EMAIL_LEAGUE_VISIBILITY } from '../email/email.constants'
-import { safeJSONParse } from '../../utils/misc'
+import { parseFile, safeJSONParse } from '../../utils/misc'
 import { USERS_LEAGUES_STATUSES } from '../usersLeagues/usersLeagues.constants'
 import { LEAGUES_INVITATIONS_STATUSES } from '../leaguesInvitations/leaguesInvitations.constants'
 import leaguesPrizesModel from '../../models/leaguesPrizes.model'
@@ -68,7 +68,8 @@ const createLeague = async (req, res) => {
   const championships = safeJSONParse(rawChampionships)
   const prizes = safeJSONParse(rawPrizes)
 
-  const badge = req.file?.path ? req.file?.path : req.body.badge
+  const badge = parseFile({ req, key: 'badge' })
+
   const ownerId = users.find(({ owner }) => owner)?.id || res.locals.jwt.user.id
 
   const visibility = isPrivate
@@ -104,38 +105,36 @@ const createLeague = async (req, res) => {
   }
 
   const existingUsers = users.filter((user) => user?.id)
-  const nonExistingUsers = users.filter((user) => !user?.id)
+  const nonExistingUsers = users.filter((user) => !user?.id && !user?.owner)
 
-  if (existingUsers.length > 0) {
-    const usersLeagues = appendUsersLeagues({
-      leagueId,
-      users: existingUsers,
-      ownerId
-    })
+  const usersLeagues = appendUsersLeagues({
+    leagueId,
+    users: existingUsers,
+    ownerId
+  })
 
-    await usersLeaguesModel.replace(usersLeagues)
+  await usersLeaguesModel.replace(usersLeagues)
 
-    existingUsers.map(async (user) => {
-      if (!user.owner) {
-        const token = jwt.sign(
-          { email: user.email, leagueId },
-          process.env.AUTH_TOKEN_SECRET,
-          {
-            expiresIn: process.env.AUTH_TOKEN_EXPIRES_IN
-          }
-        )
+  existingUsers.map(async (user) => {
+    if (!user.owner) {
+      const token = jwt.sign(
+        { email: user.email, leagueId },
+        process.env.AUTH_TOKEN_SECRET,
+        {
+          expiresIn: process.env.AUTH_TOKEN_EXPIRES_IN
+        }
+      )
 
-        sendLeagueInvitationEmail({
-          name: user.name,
-          email: user.email,
-          league: name,
-          owner: res.locals.jwt.user.name,
-          visibility,
-          token
-        })
-      }
-    })
-  }
+      sendLeagueInvitationEmail({
+        name: user.name,
+        email: user.email,
+        league: name,
+        owner: res.locals.jwt.user.name,
+        visibility,
+        token
+      })
+    }
+  })
 
   nonExistingUsers.map(async (user) => {
     const token = jwt.sign(
@@ -193,7 +192,8 @@ const updateLeague = async (req, res) => {
   const enablePrizes = safeJSONParse(rawEnablePrizes)
   const prizes = safeJSONParse(rawPrizes)
 
-  const badge = req.file?.path ? req.file?.path : req.body.badge3
+  const badge = parseFile({ req, key: 'badge' })
+
   const ownerId = users.find(({ owner }) => owner)?.id || res.locals.jwt.user.id
 
   const visibility = isPrivate
@@ -235,7 +235,7 @@ const updateLeague = async (req, res) => {
     }
   }
 
-  const existingUsers = users.filter((user) => user?.name)
+  const existingUsers = users.filter((user) => user?.id)
   const existingNonLeagueUsers = existingUsers.filter(
     (user) => !user.status && !user?.owner
   )

@@ -11,6 +11,9 @@ import {
   deleteChampionships
 } from './championships.controller'
 
+import { updateStatus } from '../common/common.controller'
+import championshipsModel from '../../models/championships.model'
+
 const router = Router()
 
 router.get('/', getChampionships)
@@ -20,6 +23,9 @@ router.get('/:id/groups', getChampionshipGroups)
 router.get('/:id/teams', getChampionshipTeams)
 router.post('/', createChampionship)
 router.put('/:id', updateChampionship)
+router.put('/:id/status', (req, res) =>
+  updateStatus(req, res, championshipsModel)
+)
 router.delete('/:id', deleteChampionship)
 router.post('/delete-many', deleteChampionships)
 

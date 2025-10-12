@@ -13,4 +13,10 @@ const safeJSONParse = (value) => {
   }
 }
 
-export { getAppRoute, safeJSONParse }
+const parseFile = ({ req, key }) => {
+  const file = req.file?.path ? req.file?.path : req.body[key]
+
+  return file !== 'null' ? file : null
+}
+
+export { getAppRoute, safeJSONParse, parseFile }

@@ -16,7 +16,7 @@ import {
   validateAccessToken,
   validateAlattusToken
 } from './middleware/jwt.middleware'
-import { sendEmail } from './services/email.service'
+import { nullParse } from './middleware/nullParse.middleware'
 
 const router = Router()
 
@@ -28,15 +28,19 @@ router.get('/', (req, res) => {
 })
 
 router.use('/auth', auth)
-router.use('/users', validateAccessToken, users)
-router.use('/teams', validateAccessToken, teams)
-router.use('/leagues', validateAccessToken, leagues)
-router.use('/matches', validateAccessToken, matches)
-router.use('/guesses', validateAccessToken, guesses)
-router.use('/users-leagues', validateAccessToken, usersLeagues)
-router.use('/championships', validateAccessToken, championships)
-router.use('/dashboard', validateAccessToken, dashboard)
-router.use('/championships-guesses', validateAccessToken, championshipsGuesses)
+router.use('/users', validateAccessToken, nullParse, users)
+router.use('/teams', validateAccessToken, nullParse, teams)
+router.use('/leagues', validateAccessToken, nullParse, leagues)
+router.use('/matches', validateAccessToken, nullParse, matches)
+router.use('/guesses', validateAccessToken, nullParse, guesses)
+router.use('/users-leagues', validateAccessToken, nullParse, usersLeagues)
+router.use('/championships', validateAccessToken, nullParse, championships)
+router.use('/dashboard', validateAccessToken, nullParse, dashboard)
+router.use(
+  '/championships-guesses',
+  [validateAccessToken, nullParse],
+  championshipsGuesses
+)
 
 router.use('/alattus', validateAlattusToken, alattus)
 router.use('/wedding-quiz', weddingQuiz)
